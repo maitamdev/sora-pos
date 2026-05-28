@@ -5,24 +5,24 @@
 
 :root {
   /* Color Palette */
-  --bg-primary: #09090b;       /* Zinc 950 */
-  --bg-secondary: #121214;     /* Dark Charcoal */
+  --bg-primary: #070a13;       /* Deep Slate 950 */
+  --bg-secondary: #0d1224;     /* Deep Blue/Slate-900 */
   --text-primary: #f4f4f5;     /* Zinc 100 */
   --text-secondary: #a1a1aa;   /* Zinc 400 */
   --text-muted: #71717a;       /* Zinc 500 */
   
   /* Brand Glow Colors */
-  --color-purple: #8b5cf6;     /* Violet 500 */
-  --color-purple-glow: rgba(139, 92, 246, 0.15);
-  --color-teal: #14b8a6;       /* Teal 500 */
-  --color-teal-glow: rgba(20, 184, 166, 0.15);
-  --color-blue: #3b82f6;       /* Blue 500 */
-  --color-blue-glow: rgba(59, 130, 246, 0.15);
+  --color-purple: #3b82f6;     /* Blue 500 (Primary) */
+  --color-purple-glow: rgba(59, 130, 246, 0.15);
+  --color-teal: #6366f1;       /* Indigo 500 (Secondary) */
+  --color-teal-glow: rgba(99, 102, 241, 0.15);
+  --color-blue: #818cf8;       /* Indigo 400 */
+  --color-blue-glow: rgba(129, 140, 248, 0.15);
   
   /* Borders and Glass */
   --glass-bg: rgba(255, 255, 255, 0.03);
   --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-border-focus: rgba(139, 92, 246, 0.5);
+  --glass-border-focus: rgba(59, 130, 246, 0.5); /* Blue focus */
   --glass-shadow: rgba(0, 0, 0, 0.5);
 
   /* Transitions */
@@ -209,9 +209,9 @@ body {
 }
 
 .badge {
-  background: rgba(139, 92, 246, 0.1);
-  border: 1px solid rgba(139, 92, 246, 0.2);
-  color: #c084fc;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
   font-size: 13px;
   font-weight: 600;
   padding: 6px 14px;
@@ -228,7 +228,7 @@ body {
 }
 
 .text-gradient {
-  background: linear-gradient(to right, var(--color-purple), #c084fc, var(--color-teal));
+  background: linear-gradient(to right, var(--color-purple), #93c5fd, var(--color-teal));
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
