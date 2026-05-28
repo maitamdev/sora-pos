@@ -2,12 +2,15 @@ import { Router } from 'express';
 import { AuthController } from '../controllers/auth.controller';
 import { validateMiddleware } from '../middlewares/validate.middleware';
 import { authMiddleware } from '../middlewares/auth.middleware';
-import { loginSchema } from '../validations/auth.validation';
+import { loginSchema, storeRegisterSchema } from '../validations/auth.validation';
 
 const router = Router();
 
 // POST /api/auth/login
 router.post('/login', validateMiddleware(loginSchema), AuthController.login);
+
+// POST /api/auth/register
+router.post('/register', validateMiddleware(storeRegisterSchema), AuthController.register);
 
 // POST /api/auth/logout
 router.post('/logout', authMiddleware, AuthController.logout);

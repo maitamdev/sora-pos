@@ -69,4 +69,18 @@ export class AuthController {
   static async logout(_req: Request, res: Response) {
     successResponse(res, null, 'Đăng xuất thành công');
   }
+
+  /**
+   * POST /api/auth/register
+   * Đăng ký tài khoản quản lý cửa hàng mới
+   */
+  static async register(req: Request, res: Response) {
+    try {
+      const { email, password, full_name, phone } = req.body;
+      const result = await AuthService.register({ email, password, full_name, phone });
+      successResponse(res, result, 'Đăng ký tài khoản thành công', 201);
+    } catch (error) {
+      errorResponse(res, (error as Error).message, 400);
+    }
+  }
 }

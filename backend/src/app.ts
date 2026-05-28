@@ -12,8 +12,9 @@ const app = express();
 app.use(morgan('dev'));
 
 // CORS
+const allowedOrigins = env.corsOrigin.split(',').map(o => o.trim());
 app.use(cors({
-  origin: env.corsOrigin,
+  origin: allowedOrigins.length === 1 && allowedOrigins[0] === '*' ? '*' : allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],

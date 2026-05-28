@@ -28,6 +28,21 @@ export default function App() {
 
   // Khi app load → verify token với backend
   useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokenParam = urlParams.get('token');
+    if (tokenParam) {
+      const persistedState = {
+        state: {
+          user: null,
+          token: tokenParam,
+          isAuthenticated: false,
+        },
+        version: 0,
+      };
+      localStorage.setItem('sora-pos-auth', JSON.stringify(persistedState));
+      // Xóa query param khỏi URL cho sạch
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
     checkAuth();
   }, [checkAuth]);
 
