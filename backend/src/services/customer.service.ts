@@ -1,10 +1,11 @@
 import { supabase } from '../config/supabase';
 
 export class CustomerService {
-  static async getAll(search?: string) {
+  static async getAll(storeId: string, search?: string) {
     let query = supabase
       .from('customers')
       .select('*')
+      .eq('store_id', storeId)
       .eq('is_active', true)
       .order('name');
 
@@ -17,10 +18,11 @@ export class CustomerService {
     return data;
   }
 
-  static async getById(id: string) {
+  static async getById(storeId: string, id: string) {
     const { data, error } = await supabase
       .from('customers')
       .select('*')
+      .eq('store_id', storeId)
       .eq('id', id)
       .single();
 
@@ -28,10 +30,10 @@ export class CustomerService {
     return data;
   }
 
-  static async create(input: { name: string; email?: string; phone?: string; address?: string }) {
+  static async create(storeId: string, input: { name: string; email?: string; phone?: string; address?: string }) {
     const { data, error } = await supabase
       .from('customers')
-      .insert(input)
+      .insert({ ...input, store_id: storeId })
       .select()
       .single();
 
@@ -39,10 +41,11 @@ export class CustomerService {
     return data;
   }
 
-  static async update(id: string, input: Record<string, unknown>) {
+  static async update(storeId: string, id: string, input: Record<string, unknown>) {
     const { data, error } = await supabase
       .from('customers')
       .update(input)
+      .eq('store_id', storeId)
       .eq('id', id)
       .select()
       .single();

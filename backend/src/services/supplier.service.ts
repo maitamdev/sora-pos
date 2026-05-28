@@ -1,10 +1,11 @@
 import { supabase } from '../config/supabase';
 
 export class SupplierService {
-  static async getAll() {
+  static async getAll(storeId: string) {
     const { data, error } = await supabase
       .from('suppliers')
       .select('*')
+      .eq('store_id', storeId)
       .eq('is_active', true)
       .order('name');
 
@@ -12,10 +13,11 @@ export class SupplierService {
     return data;
   }
 
-  static async getById(id: string) {
+  static async getById(storeId: string, id: string) {
     const { data, error } = await supabase
       .from('suppliers')
       .select('*')
+      .eq('store_id', storeId)
       .eq('id', id)
       .single();
 
@@ -23,10 +25,10 @@ export class SupplierService {
     return data;
   }
 
-  static async create(input: { name: string; contact_person?: string; email?: string; phone?: string; address?: string; tax_code?: string }) {
+  static async create(storeId: string, input: { name: string; contact_person?: string; email?: string; phone?: string; address?: string; tax_code?: string }) {
     const { data, error } = await supabase
       .from('suppliers')
-      .insert(input)
+      .insert({ ...input, store_id: storeId })
       .select()
       .single();
 
@@ -34,10 +36,11 @@ export class SupplierService {
     return data;
   }
 
-  static async update(id: string, input: Record<string, unknown>) {
+  static async update(storeId: string, id: string, input: Record<string, unknown>) {
     const { data, error } = await supabase
       .from('suppliers')
       .update(input)
+      .eq('store_id', storeId)
       .eq('id', id)
       .select()
       .single();
@@ -46,10 +49,11 @@ export class SupplierService {
     return data;
   }
 
-  static async delete(id: string) {
+  static async delete(storeId: string, id: string) {
     const { error } = await supabase
       .from('suppliers')
       .update({ is_active: false })
+      .eq('store_id', storeId)
       .eq('id', id);
 
     if (error) throw new Error(error.message);

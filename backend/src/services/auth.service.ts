@@ -32,6 +32,7 @@ export class AuthService {
       userId: user.id,
       email: user.email,
       role: user.roles.name,
+      storeId: user.store_id,
     };
 
     const token = jwt.sign(payload, env.jwtSecret, {
@@ -54,6 +55,7 @@ export class AuthService {
       role: user.roles.name,
       is_active: user.is_active,
       last_login: user.last_login,
+      store_id: user.store_id,
     };
 
     return { user: userResponse, token };
@@ -80,6 +82,7 @@ export class AuthService {
       role: user.roles.name,
       is_active: user.is_active,
       last_login: user.last_login,
+      store_id: user.store_id,
     };
   }
 
@@ -91,6 +94,7 @@ export class AuthService {
     password: string;
     full_name: string;
     phone?: string;
+    store_name?: string;
   }): Promise<{ user: UserResponse; token: string }> {
     // 1. Kiểm tra email tồn tại
     const { data: existingUser } = await supabase
@@ -113,10 +117,22 @@ export class AuthService {
       throw new Error('Không tìm thấy vai trò quản lý trong hệ thống');
     }
 
-    // 3. Hash password
+    // 3. Tạo Store mới trong database
+    const storeName = input.store_name || `${input.full_name} Store`;
+    const { data: store, error: storeCreateError } = await supabase
+      .from('stores')
+      .insert({ name: storeName })
+      .select('id')
+      .single();
+
+    if (storeCreateError || !store) {
+      throw new Error('Tạo cửa hàng thất bại: ' + (storeCreateError?.message || 'Lỗi không xác định'));
+    }
+
+    // 4. Hash password
     const passwordHash = await bcrypt.hash(input.password, 10);
 
-    // 4. Tạo user mới
+    // 5. Tạo user mới liên kết với store mới
     const { data: user, error: createError } = await supabase
       .from('users')
       .insert({
@@ -125,20 +141,24 @@ export class AuthService {
         full_name: input.full_name,
         phone: input.phone || null,
         role_id: role.id,
+        store_id: store.id,
         is_active: true,
       })
       .select('*, roles(name)')
       .single();
 
     if (createError || !user) {
+      // Rollback store creation if user creation fails
+      await supabase.from('stores').delete().eq('id', store.id);
       throw new Error('Đăng ký tài khoản thất bại: ' + (createError?.message || 'Lỗi không xác định'));
     }
 
-    // 5. Tạo JWT token
+    // 6. Tạo JWT token
     const payload: JwtPayload = {
       userId: user.id,
       email: user.email,
       role: user.roles.name,
+      storeId: user.store_id,
     };
 
     const token = jwt.sign(payload, env.jwtSecret, {
@@ -154,6 +174,7 @@ export class AuthService {
       role: user.roles.name,
       is_active: user.is_active,
       last_login: user.last_login,
+      store_id: user.store_id,
     };
 
     return { user: userResponse, token };

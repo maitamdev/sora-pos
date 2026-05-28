@@ -5,16 +5,17 @@ export class StockService {
   /**
    * Nhập kho - tăng stock_quantity và ghi transaction
    */
-  static async importStock(input: StockImportInput, userId: string) {
+  static async importStock(storeId: string, input: StockImportInput, userId: string) {
     // 1. Lấy thông tin sản phẩm hiện tại
     const { data: product, error: productError } = await supabase
       .from('products')
       .select('id, name, stock_quantity, min_stock_level')
+      .eq('store_id', storeId)
       .eq('id', input.product_id)
       .single();
 
     if (productError || !product) {
-      throw new Error('Sản phẩm không tồn tại');
+      throw new Error('Sản phẩm không tồn tại hoặc không thuộc cửa hàng này');
     }
 
     const previousStock = product.stock_quantity;
@@ -24,6 +25,7 @@ export class StockService {
     await supabase
       .from('products')
       .update({ stock_quantity: newStock })
+      .eq('store_id', storeId)
       .eq('id', input.product_id);
 
     // 3. Ghi stock_transaction
@@ -62,15 +64,16 @@ export class StockService {
   /**
    * Điều chỉnh tồn kho - set stock_quantity trực tiếp
    */
-  static async adjustStock(input: StockAdjustmentInput, userId: string) {
+  static async adjustStock(storeId: string, input: StockAdjustmentInput, userId: string) {
     const { data: product, error: productError } = await supabase
       .from('products')
       .select('id, name, stock_quantity, min_stock_level')
+      .eq('store_id', storeId)
       .eq('id', input.product_id)
       .single();
 
     if (productError || !product) {
-      throw new Error('Sản phẩm không tồn tại');
+      throw new Error('Sản phẩm không tồn tại hoặc không thuộc cửa hàng này');
     }
 
     const previousStock = product.stock_quantity;
@@ -80,6 +83,7 @@ export class StockService {
     await supabase
       .from('products')
       .update({ stock_quantity: input.new_quantity })
+      .eq('store_id', storeId)
       .eq('id', input.product_id);
 
     // Ghi transaction
@@ -138,10 +142,11 @@ export class StockService {
   /**
    * Lấy danh sách cảnh báo tồn kho thấp
    */
-  static async getAlerts() {
+  static async getAlerts(storeId: string) {
     const { data, error } = await supabase
       .from('stock_alerts')
-      .select('*, products(name, sku, stock_quantity, min_stock_level, unit)')
+      .select('*, products!inner(name, sku, stock_quantity, min_stock_level, unit, store_id)')
+      .eq('products.store_id', storeId)
       .neq('status', 'resolved')
       .order('created_at', { ascending: false });
 
@@ -152,10 +157,11 @@ export class StockService {
   /**
    * Lấy lịch sử giao dịch kho
    */
-  static async getTransactions(productId?: string, page: number = 1, limit: number = 50) {
+  static async getTransactions(storeId: string, productId?: string, page: number = 1, limit: number = 50) {
     let query = supabase
       .from('stock_transactions')
-      .select('*, products(name, sku), users(full_name)', { count: 'exact' })
+      .select('*, products!inner(name, sku, store_id), users(full_name)', { count: 'exact' })
+      .eq('products.store_id', storeId)
       .order('created_at', { ascending: false });
 
     if (productId) {

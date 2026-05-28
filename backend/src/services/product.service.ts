@@ -5,10 +5,11 @@ export class ProductService {
   /**
    * Lấy danh sách sản phẩm (có phân trang)
    */
-  static async getAll(page: number = 1, limit: number = 20, search?: string) {
+  static async getAll(storeId: string, page: number = 1, limit: number = 20, search?: string) {
     let query = supabase
       .from('products')
       .select('*, categories(name), suppliers(name)', { count: 'exact' })
+      .eq('store_id', storeId)
       .eq('is_active', true)
       .order('created_at', { ascending: false });
 
@@ -38,10 +39,11 @@ export class ProductService {
   /**
    * Lấy sản phẩm theo ID
    */
-  static async getById(id: string): Promise<Product | null> {
+  static async getById(storeId: string, id: string): Promise<Product | null> {
     const { data, error } = await supabase
       .from('products')
       .select('*, categories(name), suppliers(name)')
+      .eq('store_id', storeId)
       .eq('id', id)
       .single();
 
@@ -52,10 +54,10 @@ export class ProductService {
   /**
    * Tạo sản phẩm mới
    */
-  static async create(input: CreateProductInput): Promise<Product> {
+  static async create(storeId: string, input: CreateProductInput): Promise<Product> {
     const { data, error } = await supabase
       .from('products')
-      .insert(input)
+      .insert({ ...input, store_id: storeId })
       .select()
       .single();
 
@@ -66,10 +68,11 @@ export class ProductService {
   /**
    * Cập nhật sản phẩm
    */
-  static async update(id: string, input: UpdateProductInput): Promise<Product> {
+  static async update(storeId: string, id: string, input: UpdateProductInput): Promise<Product> {
     const { data, error } = await supabase
       .from('products')
       .update(input)
+      .eq('store_id', storeId)
       .eq('id', id)
       .select()
       .single();
@@ -81,10 +84,11 @@ export class ProductService {
   /**
    * Xóa sản phẩm (soft delete)
    */
-  static async delete(id: string): Promise<void> {
+  static async delete(storeId: string, id: string): Promise<void> {
     const { error } = await supabase
       .from('products')
       .update({ is_active: false })
+      .eq('store_id', storeId)
       .eq('id', id);
 
     if (error) throw new Error(error.message);

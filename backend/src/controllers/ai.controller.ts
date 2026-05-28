@@ -12,10 +12,12 @@ export class AiController {
         return;
       }
 
+      const storeId = req.user!.storeId;
       // Lấy danh sách danh mục để gửi cho AI map
       const { data: categories, error } = await supabase
         .from('categories')
         .select('id, name')
+        .eq('store_id', storeId)
         .eq('is_active', true);
 
       if (error) {

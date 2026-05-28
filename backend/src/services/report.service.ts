@@ -4,13 +4,14 @@ export class ReportService {
   /**
    * Dữ liệu dashboard tổng quan
    */
-  static async getDashboard() {
+  static async getDashboard(storeId: string) {
     // Tổng doanh thu hôm nay
     const today = new Date().toISOString().slice(0, 10);
 
     const { data: todayOrders } = await supabase
       .from('orders')
       .select('final_amount')
+      .eq('store_id', storeId)
       .eq('status', 'completed')
       .gte('created_at', `${today}T00:00:00`)
       .lte('created_at', `${today}T23:59:59`);
@@ -22,18 +23,21 @@ export class ReportService {
     const { count: totalProducts } = await supabase
       .from('products')
       .select('id', { count: 'exact' })
+      .eq('store_id', storeId)
       .eq('is_active', true);
 
     // Số cảnh báo tồn kho
     const { count: stockAlerts } = await supabase
       .from('stock_alerts')
-      .select('id', { count: 'exact' })
+      .select('id, products!inner(store_id)', { count: 'exact' })
+      .eq('products.store_id', storeId)
       .neq('status', 'resolved');
 
     // Tổng khách hàng
     const { count: totalCustomers } = await supabase
       .from('customers')
       .select('id', { count: 'exact' })
+      .eq('store_id', storeId)
       .eq('is_active', true);
 
     return {
@@ -48,13 +52,14 @@ export class ReportService {
   /**
    * Sản phẩm bán chạy nhất (top N)
    */
-  static async getTopProducts(limit: number = 10, days: number = 30) {
+  static async getTopProducts(storeId: string, limit: number = 10, days: number = 30) {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
     const { data, error } = await supabase
       .from('order_details')
-      .select('product_id, product_name, quantity')
+      .select('product_id, product_name, quantity, orders!inner(store_id)')
+      .eq('orders.store_id', storeId)
       .gte('created_at', startDate.toISOString());
 
     if (error) throw new Error(error.message);
@@ -82,13 +87,14 @@ export class ReportService {
   /**
    * Báo cáo doanh thu theo ngày (N ngày gần đây)
    */
-  static async getRevenueByDay(days: number = 7) {
+  static async getRevenueByDay(storeId: string, days: number = 7) {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
     const { data, error } = await supabase
       .from('orders')
       .select('final_amount, created_at')
+      .eq('store_id', storeId)
       .eq('status', 'completed')
       .gte('created_at', startDate.toISOString())
       .order('created_at');
@@ -111,10 +117,11 @@ export class ReportService {
   /**
    * Sản phẩm tồn kho thấp
    */
-  static async getLowStockProducts() {
+  static async getLowStockProducts(storeId: string) {
     const { data, error } = await supabase
       .from('products')
       .select('id, name, sku, stock_quantity, min_stock_level, unit')
+      .eq('store_id', storeId)
       .eq('is_active', true)
       .filter('stock_quantity', 'lte', 'min_stock_level' as unknown as number);
 
@@ -123,6 +130,7 @@ export class ReportService {
       const { data: allProducts } = await supabase
         .from('products')
         .select('id, name, sku, stock_quantity, min_stock_level, unit')
+        .eq('store_id', storeId)
         .eq('is_active', true);
 
       return allProducts?.filter((p) => p.stock_quantity <= p.min_stock_level) || [];

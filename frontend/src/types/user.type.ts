@@ -9,6 +9,7 @@ export interface User {
   role: UserRole;
   is_active: boolean;
   last_login?: string;
+  store_id: string;
 }
 
 export interface LoginRequest {

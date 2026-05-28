@@ -4,10 +4,11 @@ export class PaymentService {
   /**
    * Lấy thanh toán theo order ID
    */
-  static async getByOrderId(orderId: string) {
+  static async getByOrderId(storeId: string, orderId: string) {
     const { data, error } = await supabase
       .from('payments')
-      .select('*')
+      .select('*, orders!inner(store_id)')
+      .eq('orders.store_id', storeId)
       .eq('order_id', orderId);
 
     if (error) throw new Error(error.message);
@@ -17,10 +18,11 @@ export class PaymentService {
   /**
    * Lấy danh sách thanh toán gần đây
    */
-  static async getRecent(limit: number = 50) {
+  static async getRecent(storeId: string, limit: number = 50) {
     const { data, error } = await supabase
       .from('payments')
-      .select('*, orders(order_number)')
+      .select('*, orders!inner(order_number, store_id)')
+      .eq('orders.store_id', storeId)
       .order('created_at', { ascending: false })
       .limit(limit);
 

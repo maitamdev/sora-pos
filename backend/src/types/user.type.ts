@@ -18,6 +18,7 @@ export interface User {
   role_id: string;
   is_active: boolean;
   last_login?: string;
+  store_id: string;
   created_at: string;
   updated_at: string;
 }
@@ -32,6 +33,7 @@ export interface UserResponse {
   role: UserRole;
   is_active: boolean;
   last_login?: string;
+  store_id: string;
 }
 
 // JWT payload
@@ -39,6 +41,7 @@ export interface JwtPayload {
   userId: string;
   email: string;
   role: UserRole;
+  storeId: string;
 }
 
 // Extend Express Request để thêm user info

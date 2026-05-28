@@ -76,8 +76,8 @@ export class AuthController {
    */
   static async register(req: Request, res: Response) {
     try {
-      const { email, password, full_name, phone } = req.body;
-      const result = await AuthService.register({ email, password, full_name, phone });
+      const { email, password, full_name, phone, store_name } = req.body;
+      const result = await AuthService.register({ email, password, full_name, phone, store_name });
       successResponse(res, result, 'Đăng ký tài khoản thành công', 201);
     } catch (error) {
       errorResponse(res, (error as Error).message, 400);

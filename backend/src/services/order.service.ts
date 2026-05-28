@@ -17,17 +17,18 @@ export class OrderService {
    * 9. Tạo payment
    * 10. Trả kết quả order đầy đủ
    */
-  static async createOrder(input: CreateOrderInput, userId: string): Promise<OrderResult> {
+  static async createOrder(storeId: string, input: CreateOrderInput, userId: string): Promise<OrderResult> {
     // ===== BƯỚC 1: Kiểm tra tồn kho =====
     const productIds = input.items.map((item) => item.product_id);
 
     const { data: products, error: productError } = await supabase
       .from('products')
       .select('id, name, stock_quantity, min_stock_level, sell_price')
+      .eq('store_id', storeId)
       .in('id', productIds);
 
     if (productError || !products) {
-      throw new Error('Không thể kiểm tra sản phẩm');
+      throw new Error('Không thể kiểm tra sản phẩm hoặc sản phẩm không thuộc cửa hàng');
     }
 
     // Kiểm tra từng sản phẩm có đủ tồn kho
@@ -35,7 +36,7 @@ export class OrderService {
     for (const item of input.items) {
       const product = products.find((p) => p.id === item.product_id);
       if (!product) {
-        insufficientStock.push(`Sản phẩm ${item.product_id} không tồn tại`);
+        insufficientStock.push(`Sản phẩm ${item.product_id} không tồn tại trong cửa hàng của bạn`);
         continue;
       }
       if (product.stock_quantity < item.quantity) {
@@ -77,6 +78,7 @@ export class OrderService {
         order_number: orderNumber,
         customer_id: input.customer_id || null,
         user_id: userId,
+        store_id: storeId,
         total_amount: totalAmount,
         discount_amount: discountAmount,
         final_amount: finalAmount,
@@ -116,6 +118,7 @@ export class OrderService {
       await supabase
         .from('products')
         .update({ stock_quantity: newStock })
+        .eq('store_id', storeId)
         .eq('id', item.product_id);
 
       // Ghi stock_transaction loại 'sale'
@@ -188,6 +191,7 @@ export class OrderService {
       const { data: customer } = await supabase
         .from('customers')
         .select('total_spent, points')
+        .eq('store_id', storeId)
         .eq('id', input.customer_id)
         .single();
 
@@ -198,6 +202,7 @@ export class OrderService {
             total_spent: (customer.total_spent || 0) + finalAmount,
             points: (customer.points || 0) + Math.floor(finalAmount / 10000), // 1 điểm per 10k
           })
+          .eq('store_id', storeId)
           .eq('id', input.customer_id);
       }
     }
@@ -212,13 +217,14 @@ export class OrderService {
   /**
    * Lấy danh sách hóa đơn (có phân trang)
    */
-  static async getAll(page: number = 1, limit: number = 20) {
+  static async getAll(storeId: string, page: number = 1, limit: number = 20) {
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
     const { data, error, count } = await supabase
       .from('orders')
       .select('*, customers(name), users(full_name)', { count: 'exact' })
+      .eq('store_id', storeId)
       .order('created_at', { ascending: false })
       .range(from, to);
 
@@ -235,10 +241,11 @@ export class OrderService {
   /**
    * Lấy chi tiết hóa đơn
    */
-  static async getById(id: string) {
+  static async getById(storeId: string, id: string) {
     const { data: order, error } = await supabase
       .from('orders')
       .select('*, customers(name), users(full_name)')
+      .eq('store_id', storeId)
       .eq('id', id)
       .single();
 

@@ -8,8 +8,9 @@ export class ProductController {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 20;
       const search = req.query.search as string | undefined;
+      const storeId = req.user!.storeId;
 
-      const result = await ProductService.getAll(page, limit, search);
+      const result = await ProductService.getAll(storeId, page, limit, search);
       successResponse(res, result);
     } catch (error) {
       errorResponse(res, (error as Error).message);
@@ -18,7 +19,8 @@ export class ProductController {
 
   static async getById(req: Request, res: Response) {
     try {
-      const product = await ProductService.getById(req.params.id);
+      const storeId = req.user!.storeId;
+      const product = await ProductService.getById(storeId, req.params.id);
       if (!product) {
         errorResponse(res, 'Sản phẩm không tồn tại', 404);
         return;
@@ -31,7 +33,8 @@ export class ProductController {
 
   static async create(req: Request, res: Response) {
     try {
-      const product = await ProductService.create(req.body);
+      const storeId = req.user!.storeId;
+      const product = await ProductService.create(storeId, req.body);
       successResponse(res, product, 'Tạo sản phẩm thành công', 201);
     } catch (error) {
       errorResponse(res, (error as Error).message);
@@ -40,7 +43,8 @@ export class ProductController {
 
   static async update(req: Request, res: Response) {
     try {
-      const product = await ProductService.update(req.params.id, req.body);
+      const storeId = req.user!.storeId;
+      const product = await ProductService.update(storeId, req.params.id, req.body);
       successResponse(res, product, 'Cập nhật sản phẩm thành công');
     } catch (error) {
       errorResponse(res, (error as Error).message);
@@ -49,7 +53,8 @@ export class ProductController {
 
   static async delete(req: Request, res: Response) {
     try {
-      await ProductService.delete(req.params.id);
+      const storeId = req.user!.storeId;
+      await ProductService.delete(storeId, req.params.id);
       successResponse(res, null, 'Xóa sản phẩm thành công');
     } catch (error) {
       errorResponse(res, (error as Error).message);
