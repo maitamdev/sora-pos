@@ -29,8 +29,8 @@ export class OrderService {
    * one database transaction.
    */
   static async createOrder(storeId: string, input: CreateOrderInput, userId: string): Promise<OrderResult> {
-    if (!userId) throw new Error('Nguoi dung chua dang nhap');
-    if (!input.items?.length) throw new Error('Gio hang dang rong');
+    if (!userId) throw new Error('Người dùng chưa đăng nhập');
+    if (!input.items?.length) throw new Error('Giỏ hàng đang rỗng');
 
     const mergedItems = input.items.reduce<Record<string, { product_id: string; quantity: number; discount: number }>>(
       (acc, item) => {
@@ -53,18 +53,18 @@ export class OrderService {
       .in('id', productIds);
 
     if (productError || !products) {
-      throw new Error('Khong the kiem tra san pham');
+      throw new Error('Không thể kiểm tra sản phẩm');
     }
 
     if (products.length !== productIds.length) {
-      throw new Error('Mot hoac nhieu san pham khong ton tai trong cua hang');
+      throw new Error('Một hoặc nhiều sản phẩm không tồn tại trong cửa hàng');
     }
 
     const insufficientStock: string[] = [];
     for (const item of items) {
       const product = products.find((p) => p.id === item.product_id) as ProductRow | undefined;
       if (!product || !product.is_active) {
-        insufficientStock.push(`San pham ${item.product_id} khong kha dung`);
+        insufficientStock.push(`Sản phẩm ${item.product_id} không khả dụng`);
         continue;
       }
       if (product.stock_quantity < item.quantity) {
@@ -73,7 +73,7 @@ export class OrderService {
     }
 
     if (insufficientStock.length > 0) {
-      throw new Error(`Khong du ton kho: ${insufficientStock.join('; ')}`);
+      throw new Error(`Không đủ tồn kho: ${insufficientStock.join('; ')}`);
     }
 
     let totalAmount = 0;
@@ -101,7 +101,7 @@ export class OrderService {
     const receivedAmount = paymentMethod === 'cash' ? input.received_amount || 0 : finalAmount;
 
     if (paymentMethod === 'cash' && receivedAmount < finalAmount) {
-      throw new Error('So tien khach dua chua du');
+      throw new Error('Số tiền khách đưa chưa đủ');
     }
 
     const orderNumber = generateOrderNumber(Date.now() % 1000);
@@ -124,7 +124,7 @@ export class OrderService {
       .single();
 
     if (orderError || !order) {
-      throw new Error(orderError?.message || 'Khong the tao hoa don');
+      throw new Error(orderError?.message || 'Không thể tạo hóa đơn');
     }
 
     const { data: details, error: detailsError } = await supabase
@@ -133,7 +133,7 @@ export class OrderService {
       .select();
 
     if (detailsError) {
-      throw new Error(detailsError.message || 'Khong the tao chi tiet hoa don');
+      throw new Error(detailsError.message || 'Không thể tạo chi tiết hóa đơn');
     }
 
     for (const item of items) {
@@ -156,7 +156,7 @@ export class OrderService {
         previous_stock: previousStock,
         new_stock: newStock,
         reference_id: order.id,
-        note: `Ban hang - HD ${orderNumber}`,
+        note: `Bán hàng - HĐ ${orderNumber}`,
         user_id: userId,
       });
 
@@ -285,8 +285,8 @@ export class OrderService {
 
   static async cancelOrder(storeId: string, id: string, userId: string) {
     const current = await this.getById(storeId, id);
-    if (!current) throw new Error('Hoa don khong ton tai');
-    if (current.order.status === 'cancelled') throw new Error('Hoa don da bi huy truoc do');
+    if (!current) throw new Error('Hóa đơn không tồn tại');
+    if (current.order.status === 'cancelled') throw new Error('Hóa đơn đã bị hủy trước đó');
 
     // Supabase JS cannot wrap this multi-step cancellation in one transaction.
     // In production, move this block to a PostgreSQL RPC for atomic stock restore,
@@ -319,7 +319,7 @@ export class OrderService {
         previous_stock: previousStock,
         new_stock: newStock,
         reference_id: id,
-        note: `Huy hoa don - HD ${current.order.order_number}`,
+        note: `Hủy hóa đơn - HĐ ${current.order.order_number}`,
         user_id: userId,
       });
 

@@ -13,9 +13,9 @@ interface OrderDetailModalProps {
 }
 
 const paymentLabel: Record<string, string> = {
-  cash: 'Tien mat',
-  bank_transfer: 'Chuyen khoan',
-  e_wallet: 'Vi dien tu',
+  cash: 'Tiền mặt',
+  bank_transfer: 'Chuyển khoản',
+  e_wallet: 'Ví điện tử',
   qr_mock: 'QR mock',
 };
 
@@ -27,8 +27,8 @@ export default function OrderDetailModal({ isOpen, loading, orderDetail, onClose
       <div className="flex max-h-[90vh] w-full max-w-4xl flex-col bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">Chi tiet hoa don</h2>
-            <p className="text-sm text-slate-500">{orderDetail?.order.order_number || 'Dang tai...'}</p>
+            <h2 className="text-lg font-semibold text-slate-900">Chi tiết hóa đơn</h2>
+            <p className="text-sm text-slate-500">{orderDetail?.order.order_number || 'Đang tải...'}</p>
           </div>
           <button onClick={onClose} className="rounded-md p-2 text-slate-400 hover:bg-slate-100">
             <HiX className="h-5 w-5" />
@@ -44,7 +44,7 @@ export default function OrderDetailModal({ isOpen, loading, orderDetail, onClose
             <div className="space-y-5">
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="rounded-lg bg-slate-50 p-4">
-                  <div className="text-xs font-medium uppercase text-slate-400">Hoa don</div>
+                  <div className="text-xs font-medium uppercase text-slate-400">Hóa đơn</div>
                   <div className="mt-1 font-mono text-base font-bold text-primary-600">{orderDetail.order.order_number}</div>
                   <div className="mt-2 text-sm text-slate-600">{formatDateTime(orderDetail.order.created_at)}</div>
                   <div className="mt-3 flex gap-2">
@@ -53,15 +53,15 @@ export default function OrderDetailModal({ isOpen, loading, orderDetail, onClose
                   </div>
                 </div>
                 <div className="rounded-lg bg-slate-50 p-4">
-                  <div className="text-xs font-medium uppercase text-slate-400">Khach hang</div>
-                  <div className="mt-1 font-semibold text-slate-900">{orderDetail.order.customers?.name || 'Khach le'}</div>
-                  <div className="mt-1 text-sm text-slate-500">{orderDetail.order.customers?.phone || 'Khong co SDT'}</div>
+                  <div className="text-xs font-medium uppercase text-slate-400">Khách hàng</div>
+                  <div className="mt-1 font-semibold text-slate-900">{orderDetail.order.customers?.name || 'Khách lẻ'}</div>
+                  <div className="mt-1 text-sm text-slate-500">{orderDetail.order.customers?.phone || 'Không có SĐT'}</div>
                   {orderDetail.order.customers?.points !== undefined && (
-                    <div className="mt-2 text-xs text-slate-500">Diem hien tai: {orderDetail.order.customers.points}</div>
+                    <div className="mt-2 text-xs text-slate-500">Điểm hiện tại: {orderDetail.order.customers.points}</div>
                   )}
                 </div>
                 <div className="rounded-lg bg-slate-50 p-4">
-                  <div className="text-xs font-medium uppercase text-slate-400">Nhan vien</div>
+                  <div className="text-xs font-medium uppercase text-slate-400">Nhân viên</div>
                   <div className="mt-1 font-semibold text-slate-900">{orderDetail.order.users?.full_name || 'N/A'}</div>
                   <div className="mt-1 text-sm text-slate-500">{orderDetail.order.users?.email || ''}</div>
                 </div>
@@ -71,11 +71,11 @@ export default function OrderDetailModal({ isOpen, loading, orderDetail, onClose
                 <table className="w-full text-left">
                   <thead>
                     <tr className="bg-slate-50">
-                      <th className="px-4 py-3 text-xs font-semibold uppercase text-slate-500">San pham</th>
+                      <th className="px-4 py-3 text-xs font-semibold uppercase text-slate-500">Sản phẩm</th>
                       <th className="px-4 py-3 text-right text-xs font-semibold uppercase text-slate-500">SL</th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase text-slate-500">Don gia</th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase text-slate-500">Giam</th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase text-slate-500">Thanh tien</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase text-slate-500">Đơn giá</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase text-slate-500">Giảm</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold uppercase text-slate-500">Thành tiền</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -97,37 +97,37 @@ export default function OrderDetailModal({ isOpen, loading, orderDetail, onClose
 
               <div className="ml-auto w-full max-w-sm space-y-2 rounded-lg bg-slate-50 p-4">
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Tam tinh</span>
+                  <span className="text-slate-500">Tạm tính</span>
                   <span>{formatCurrency(orderDetail.order.total_amount)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Giam gia</span>
+                  <span className="text-slate-500">Giảm giá</span>
                   <span>{formatCurrency(orderDetail.order.discount_amount)}</span>
                 </div>
                 <div className="flex justify-between border-t border-slate-200 pt-2 text-lg font-bold">
-                  <span>Tong thanh toan</span>
+                  <span>Tổng thanh toán</span>
                   <span className="text-primary-600">{formatCurrency(orderDetail.order.final_amount)}</span>
                 </div>
                 {orderDetail.payment && (
                   <div className="border-t border-slate-200 pt-2 text-sm text-slate-600">
-                    <div>Phuong thuc: {paymentLabel[orderDetail.payment.method] || orderDetail.payment.method}</div>
-                    <div>Tien nhan: {formatCurrency(orderDetail.payment.received_amount)}</div>
-                    <div>Tien thua: {formatCurrency(orderDetail.payment.change_amount)}</div>
+                    <div>Phương thức: {paymentLabel[orderDetail.payment.method] || orderDetail.payment.method}</div>
+                    <div>Tiền nhận: {formatCurrency(orderDetail.payment.received_amount)}</div>
+                    <div>Tiền thừa: {formatCurrency(orderDetail.payment.change_amount)}</div>
                   </div>
                 )}
               </div>
             </div>
           ) : (
-            <div className="py-12 text-center text-slate-500">Khong tai duoc hoa don</div>
+            <div className="py-12 text-center text-slate-500">Không tải được hóa đơn</div>
           )}
         </div>
 
         <div className="flex justify-end gap-3 border-t border-slate-100 bg-slate-50 px-5 py-4">
           <button onClick={onClose} className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-            Dong
+            Đóng
           </button>
           <button onClick={onDownloadPdf} disabled={!orderDetail} className="btn-primary px-4 py-2 disabled:opacity-50">
-            Tai PDF
+            Tải PDF
           </button>
         </div>
       </div>

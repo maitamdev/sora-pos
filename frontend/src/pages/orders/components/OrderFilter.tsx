@@ -23,7 +23,7 @@ export default function OrderFilter({ filters, customers, onChange, onSubmit }: 
             value={filters.search || ''}
             onChange={(e) => updateFilter({ search: e.target.value })}
             onKeyDown={(e) => e.key === 'Enter' && onSubmit()}
-            placeholder="Tim ma hoa don..."
+            placeholder="Tìm mã hóa đơn..."
             className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2.5 pl-11 pr-4 text-sm focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/30"
           />
         </div>
@@ -47,7 +47,7 @@ export default function OrderFilter({ filters, customers, onChange, onSubmit }: 
           onChange={(e) => updateFilter({ customer_id: e.target.value || undefined })}
           className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
         >
-          <option value="">Tat ca khach hang</option>
+          <option value="">Tất cả khách hàng</option>
           {customers.map((customer) => (
             <option key={customer.id} value={customer.id}>
               {customer.name} {customer.phone ? `- ${customer.phone}` : ''}
@@ -60,10 +60,10 @@ export default function OrderFilter({ filters, customers, onChange, onSubmit }: 
           onChange={(e) => updateFilter({ status: e.target.value as OrderFilters['status'] })}
           className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
         >
-          <option value="all">Tat ca trang thai</option>
-          <option value="completed">Hoan thanh</option>
-          <option value="cancelled">Da huy</option>
-          <option value="refunded">Hoan tra</option>
+          <option value="all">Tất cả trạng thái</option>
+          <option value="completed">Hoàn thành</option>
+          <option value="cancelled">Đã hủy</option>
+          <option value="refunded">Hoàn trả</option>
         </select>
 
         <select
@@ -71,10 +71,10 @@ export default function OrderFilter({ filters, customers, onChange, onSubmit }: 
           onChange={(e) => updateFilter({ payment_status: e.target.value as OrderFilters['payment_status'] })}
           className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
         >
-          <option value="all">Tat ca TT</option>
-          <option value="paid">Da thanh toan</option>
-          <option value="unpaid">Chua thanh toan</option>
-          <option value="partial">Mot phan</option>
+          <option value="all">Tất cả TT</option>
+          <option value="paid">Đã thanh toán</option>
+          <option value="unpaid">Chưa thanh toán</option>
+          <option value="partial">Một phần</option>
         </select>
       </div>
 
@@ -82,17 +82,17 @@ export default function OrderFilter({ filters, customers, onChange, onSubmit }: 
         <input
           value={filters.user_id || ''}
           onChange={(e) => updateFilter({ user_id: e.target.value || undefined })}
-          placeholder="Loc theo ma nhan vien neu can..."
+          placeholder="Lọc theo mã nhân viên nếu cần..."
           className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
         />
         <button onClick={onSubmit} className="btn-primary px-5">
-          Ap dung
+          Áp dụng
         </button>
         <button
           onClick={() => onChange({ page: 1, limit: filters.limit || 20, status: 'all', payment_status: 'all' })}
           className="rounded-lg border border-slate-200 bg-white px-5 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
         >
-          Xoa loc
+          Xóa lọc
         </button>
       </div>
     </div>

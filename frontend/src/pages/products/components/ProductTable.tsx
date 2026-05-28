@@ -45,10 +45,10 @@ export default function ProductTable({
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50/80">
               <th className="px-5 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500">SKU</th>
-              <th className="px-5 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500">San pham</th>
+              <th className="px-5 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500">Sản phẩm</th>
               <th className="px-5 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500">Gia</th>
-              <th className="px-5 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">Ton kho</th>
-              <th className="px-5 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">Trang thai</th>
+              <th className="px-5 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">Tồn kho</th>
+              <th className="px-5 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">Trạng thái</th>
               <th className="px-5 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">Thao tac</th>
             </tr>
           </thead>
@@ -59,8 +59,8 @@ export default function ProductTable({
                   <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
                     <HiOutlineCube className="h-8 w-8 text-slate-400" />
                   </div>
-                  <h3 className="mb-1 font-medium text-slate-600">Khong tim thay san pham</h3>
-                  <p className="text-sm text-slate-400">Thu doi tu khoa, danh muc hoac trang thai loc.</p>
+                  <h3 className="mb-1 font-medium text-slate-600">Không tìm thấy sản phẩm</h3>
+                  <p className="text-sm text-slate-400">Thử đổi từ khóa, danh mục hoặc trạng thái lọc.</p>
                 </td>
               </tr>
             ) : (
@@ -87,13 +87,13 @@ export default function ProductTable({
                       </div>
                       <div className="min-w-[180px]">
                         <div className="line-clamp-1 text-sm font-medium text-slate-900">{product.name}</div>
-                        <div className="mt-0.5 text-xs text-slate-500">{product.categories?.name || 'Chua phan loai'}</div>
+                        <div className="mt-0.5 text-xs text-slate-500">{product.categories?.name || 'Chưa phân loại'}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-5 py-4">
                     <div className="text-sm font-semibold text-emerald-600">{currency(product.sell_price)}</div>
-                    <div className="mt-0.5 text-xs text-slate-400">Nhap: {currency(product.cost_price)}</div>
+                    <div className="mt-0.5 text-xs text-slate-400">Nhập: {currency(product.cost_price)}</div>
                   </td>
                   <td className="px-5 py-4 text-center">
                     <span
@@ -118,7 +118,7 @@ export default function ProductTable({
                       <button
                         onClick={() => onShowQr(product)}
                         className="rounded-md p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
-                        title="Tao QR"
+                        title="Tạo QR"
                       >
                         <HiOutlineQrcode className="h-5 w-5" />
                       </button>
@@ -127,14 +127,14 @@ export default function ProductTable({
                           <button
                             onClick={() => onEdit(product)}
                             className="rounded-md p-1.5 text-blue-600 transition-colors hover:bg-blue-50"
-                            title="Chinh sua"
+                            title="Chỉnh sửa"
                           >
                             <HiOutlinePencilAlt className="h-5 w-5" />
                           </button>
                           <button
                             onClick={() => onDelete(product)}
                             className="rounded-md p-1.5 text-red-600 transition-colors hover:bg-red-50"
-                            title="An san pham"
+                            title="Ẩn sản phẩm"
                           >
                             <HiOutlineTrash className="h-5 w-5" />
                           </button>

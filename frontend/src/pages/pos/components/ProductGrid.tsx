@@ -27,8 +27,8 @@ export default function ProductGrid({ products, loading, onAdd }: ProductGridPro
     return (
       <div className="flex h-72 flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 bg-white text-center">
         <HiOutlineCube className="mb-3 h-10 w-10 text-slate-300" />
-        <div className="font-medium text-slate-600">Khong co san pham phu hop</div>
-        <div className="mt-1 text-sm text-slate-400">Thu tim bang ten, SKU, barcode hoac QR.</div>
+        <div className="font-medium text-slate-600">Không có sản phẩm phù hợp</div>
+        <div className="mt-1 text-sm text-slate-400">Thử tìm bằng tên, SKU, barcode hoặc QR.</div>
       </div>
     );
   }

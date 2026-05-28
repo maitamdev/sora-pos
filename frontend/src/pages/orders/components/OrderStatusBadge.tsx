@@ -12,11 +12,11 @@ export default function OrderStatusBadge({ status }: OrderStatusBadgeProps) {
 
   const label =
     status === 'completed'
-      ? 'Hoan thanh'
+      ? 'Hoàn thành'
       : status === 'cancelled'
-        ? 'Da huy'
+        ? 'Đã hủy'
         : status === 'refunded'
-          ? 'Hoan tra'
+          ? 'Hoàn trả'
           : status;
 
   return (

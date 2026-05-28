@@ -39,7 +39,7 @@ export default function CartItem({ item, onIncrease, onDecrease, onRemove }: Car
             type="button"
             onClick={() => onDecrease(item.product_id)}
             className="flex h-8 w-8 items-center justify-center text-slate-600 hover:bg-slate-50"
-            title="Giam"
+            title="Giảm"
           >
             <HiOutlineMinus className="h-4 w-4" />
           </button>
@@ -56,7 +56,7 @@ export default function CartItem({ item, onIncrease, onDecrease, onRemove }: Car
         </div>
         <div className="text-right">
           <div className="text-sm font-bold text-primary-600">{formatCurrency(item.subtotal)}</div>
-          <div className="text-xs text-slate-400">Ton {item.stock_quantity}</div>
+          <div className="text-xs text-slate-400">Tồn {item.stock_quantity}</div>
         </div>
       </div>
     </div>

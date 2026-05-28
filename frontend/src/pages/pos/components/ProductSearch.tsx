@@ -16,7 +16,7 @@ export default function ProductSearch({ value, onChange, onSubmit }: ProductSear
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && onSubmit()}
-          placeholder="Tim san pham theo ten, SKU, barcode hoac QR..."
+          placeholder="Tìm sản phẩm theo tên, SKU, barcode hoặc QR..."
           className="w-full rounded-lg border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
           autoFocus
         />
@@ -25,7 +25,7 @@ export default function ProductSearch({ value, onChange, onSubmit }: ProductSear
         type="button"
         onClick={onSubmit}
         className="inline-flex h-12 w-12 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition-colors hover:bg-slate-50"
-        title="Tim hoac quet QR"
+        title="Tìm hoặc quét QR"
       >
         <HiOutlineQrcode className="h-5 w-5" />
       </button>

@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
-import { HiOutlineCheckCircle, HiX } from 'react-icons/hi';
+import {
+  HiOutlineCash,
+  HiOutlineCheckCircle,
+  HiOutlineDocumentDownload,
+  HiOutlinePrinter,
+  HiX,
+} from 'react-icons/hi';
 import { useCartStore } from '../../stores/cart.store';
 import { productAPI } from '../../services/product.api';
 import { orderAPI } from '../../services/order.api';
@@ -63,7 +69,7 @@ export default function POSPage() {
       });
       setProducts(res.data.data?.products || []);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Loi khi tai san pham');
+      toast.error(err.response?.data?.message || 'Lỗi khi tải sản phẩm');
       setProducts([]);
     } finally {
       setLoading(false);
@@ -89,24 +95,24 @@ export default function POSPage() {
   const handleAddToCart = (product: Product) => {
     const result = addItem(product);
     if (!result.ok) {
-      toast.error(result.message || 'Khong the them san pham');
+      toast.error(result.message || 'Không thể thêm sản phẩm');
       return;
     }
-    toast.success(`Da them ${product.name}`);
+    toast.success(`Đã thêm ${product.name}`);
   };
 
   const handleIncrease = (productId: string) => {
     const result = increaseQuantity(productId);
-    if (!result.ok) toast.error(result.message || 'Khong du ton kho');
+    if (!result.ok) toast.error(result.message || 'Không đủ tồn kho');
   };
 
   const handleCheckout = async () => {
     if (items.length === 0) {
-      toast.error('Gio hang dang rong');
+      toast.error('Giỏ hàng đang rỗng');
       return;
     }
     if (paymentMethod === 'cash' && receivedAmount < total) {
-      toast.error('So tien khach dua chua du');
+      toast.error('Số tiền khách đưa chưa đủ');
       return;
     }
 
@@ -130,9 +136,9 @@ export default function POSPage() {
       clearCart();
       setIsPaymentOpen(false);
       await fetchProducts(search);
-      toast.success('Tao hoa don thanh cong');
+      toast.success('Tạo hóa đơn thành công');
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Loi tao hoa don');
+      toast.error(err.response?.data?.message || 'Lỗi tạo hóa đơn');
     } finally {
       setSubmitting(false);
     }
@@ -145,11 +151,11 @@ export default function POSPage() {
           <div className="mb-4">
             <div className="mb-3 flex items-end justify-between gap-4">
               <div>
-                <h1 className="page-title text-2xl font-bold text-slate-900">POS ban hang</h1>
-                <p className="mt-1 text-sm text-slate-500">Tim nhanh, them gio va thanh toan tai quay.</p>
+                <h1 className="page-title text-2xl font-bold text-slate-900">POS bán hàng</h1>
+                <p className="mt-1 text-sm text-slate-500">Tìm nhanh, thêm giỏ và thanh toán tại quầy.</p>
               </div>
               <div className="rounded-lg border border-slate-100 bg-white px-4 py-2 text-right shadow-sm">
-                <div className="text-xs text-slate-400">Trong gio</div>
+                <div className="text-xs text-slate-400">Trong giỏ</div>
                 <div className="text-lg font-bold text-primary-600">{cartQuantity} SP</div>
               </div>
             </div>
@@ -195,45 +201,113 @@ export default function POSPage() {
 
       {lastOrder && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
-          <div className="w-full max-w-md rounded-lg bg-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-              <div className="flex items-center gap-2 font-semibold text-slate-900">
-                <HiOutlineCheckCircle className="h-6 w-6 text-emerald-600" />
-                Hoa don da tao
-              </div>
-              <button onClick={() => setLastOrder(null)} className="rounded-md p-2 text-slate-400 hover:bg-slate-100">
-                <HiX className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="space-y-3 p-5">
-              <div className="rounded-lg bg-slate-50 p-4">
-                <div className="text-sm text-slate-500">Ma hoa don</div>
-                <div className="font-mono text-lg font-bold text-slate-900">{lastOrder.order.order_number}</div>
-              </div>
-              <div className="max-h-52 space-y-2 overflow-y-auto">
-                {lastOrder.order_details.map((detail) => (
-                  <div key={detail.id} className="flex justify-between gap-3 text-sm">
-                    <span className="text-slate-600">
-                      {detail.product_name} x{detail.quantity}
-                    </span>
-                    <span className="font-medium text-slate-900">{formatCurrency(detail.subtotal)}</span>
+          <div className="w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl">
+            <div className="bg-gradient-to-r from-emerald-600 to-blue-600 px-6 py-5 text-white">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-white/80">
+                    <HiOutlineCheckCircle className="h-5 w-5" />
+                    Thanh toán thành công
                   </div>
-                ))}
+                  <div className="mt-2 font-mono text-xl font-bold">{lastOrder.order.order_number}</div>
+                  <div className="mt-1 text-sm text-white/80">
+                    {new Date(lastOrder.order.created_at).toLocaleString('vi-VN')}
+                  </div>
+                </div>
+                <button onClick={() => setLastOrder(null)} className="rounded-md p-2 text-white/70 hover:bg-white/10 hover:text-white">
+                  <HiX className="h-5 w-5" />
+                </button>
               </div>
-              <div className="border-t border-slate-100 pt-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Giam gia</span>
+            </div>
+
+            <div className="space-y-5 p-6">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-lg border border-slate-100 bg-slate-50 p-3">
+                  <div className="text-xs font-medium uppercase text-slate-400">Khách hàng</div>
+                  <div className="mt-1 font-semibold text-slate-900">{lastOrder.order.customers?.name || 'Khách lẻ'}</div>
+                  <div className="text-sm text-slate-500">{lastOrder.order.customers?.phone || 'Không có SĐT'}</div>
+                </div>
+                <div className="rounded-lg border border-slate-100 bg-slate-50 p-3">
+                  <div className="text-xs font-medium uppercase text-slate-400">Thanh toán</div>
+                  <div className="mt-1 flex items-center gap-2 font-semibold text-slate-900">
+                    <HiOutlineCash className="h-5 w-5 text-emerald-600" />
+                    {lastOrder.payment?.method === 'cash'
+                      ? 'Tiền mặt'
+                      : lastOrder.payment?.method === 'bank_transfer'
+                        ? 'Chuyển khoản'
+                        : lastOrder.payment?.method === 'e_wallet'
+                          ? 'Ví điện tử'
+                          : 'QR mock'}
+                  </div>
+                  <div className="text-sm text-slate-500">Đã ghi nhận thanh toán</div>
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-slate-100">
+                <div className="border-b border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
+                  Sản phẩm đã bán
+                </div>
+                <div className="max-h-56 divide-y divide-slate-100 overflow-y-auto">
+                  {lastOrder.order_details.map((detail) => (
+                    <div key={detail.id} className="flex items-start justify-between gap-4 px-4 py-3">
+                      <div className="min-w-0">
+                        <div className="line-clamp-2 text-sm font-medium text-slate-900">{detail.product_name}</div>
+                        <div className="mt-1 text-xs text-slate-500">
+                          {formatCurrency(detail.unit_price)} x {detail.quantity}
+                        </div>
+                      </div>
+                      <div className="whitespace-nowrap text-sm font-semibold text-slate-900">
+                        {formatCurrency(detail.subtotal)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-lg bg-slate-950 p-4 text-white">
+                <div className="flex justify-between text-sm text-white/70">
+                  <span>Tạm tính</span>
+                  <span>{formatCurrency(lastOrder.order.total_amount)}</span>
+                </div>
+                <div className="mt-2 flex justify-between text-sm text-white/70">
+                  <span>Giảm giá</span>
                   <span>{formatCurrency(lastOrder.order.discount_amount)}</span>
                 </div>
-                <div className="mt-2 flex justify-between text-lg font-bold">
-                  <span>Tong thanh toan</span>
-                  <span className="text-primary-600">{formatCurrency(lastOrder.order.final_amount)}</span>
+                <div className="mt-3 flex justify-between border-t border-white/10 pt-3 text-xl font-bold">
+                  <span>Tổng thanh toán</span>
+                  <span>{formatCurrency(lastOrder.order.final_amount)}</span>
                 </div>
               </div>
             </div>
-            <div className="border-t border-slate-100 bg-slate-50 p-4">
-              <button onClick={() => setLastOrder(null)} className="btn-primary w-full py-2.5">
-                Dong
+
+            <div className="grid grid-cols-3 gap-3 border-t border-slate-100 bg-slate-50 p-4">
+              <button
+                onClick={async () => {
+                  const res = await orderAPI.downloadPdf(lastOrder.order.id);
+                  const blob = new Blob([res.data], { type: 'application/pdf' });
+                  const url = window.URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = `${lastOrder.order.order_number}.pdf`;
+                  document.body.appendChild(link);
+                  link.click();
+                  link.remove();
+                  window.URL.revokeObjectURL(url);
+                }}
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+              >
+                <HiOutlineDocumentDownload className="h-5 w-5" />
+                PDF
+              </button>
+              <button
+                onClick={() => window.print()}
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100"
+              >
+                <HiOutlinePrinter className="h-5 w-5" />
+                In
+              </button>
+              <button onClick={() => setLastOrder(null)} className="btn-primary py-2.5">
+                Đóng
               </button>
             </div>
           </div>

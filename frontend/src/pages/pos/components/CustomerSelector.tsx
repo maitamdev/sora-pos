@@ -73,11 +73,11 @@ export default function CustomerSelector({ value, onChange }: CustomerSelectorPr
 
   const quickCreate = async () => {
     if (!newName.trim()) {
-      toast.error('Nhap ten khach hang');
+      toast.error('Nhập tên khách hàng');
       return;
     }
     if (!phoneSearch) {
-      toast.error('Nhap so dien thoai');
+      toast.error('Nhập số điện thoại');
       return;
     }
 
@@ -91,9 +91,9 @@ export default function CustomerSelector({ value, onChange }: CustomerSelectorPr
       setCustomers([customer]);
       selectCustomer(customer);
       setNewName('');
-      toast.success('Da dang ky thanh vien va chon vao hoa don');
+      toast.success('Đã đăng ký thành viên và chọn vào hóa đơn');
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Khong the dang ky thanh vien');
+      toast.error(err.response?.data?.message || 'Không thể đăng ký thành viên');
     } finally {
       setCreating(false);
     }
@@ -102,11 +102,11 @@ export default function CustomerSelector({ value, onChange }: CustomerSelectorPr
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-semibold text-slate-700">Khach hang thanh vien</label>
+        <label className="text-sm font-semibold text-slate-700">Khách hàng thành viên</label>
         {value && (
           <button type="button" onClick={clearCustomer} className="inline-flex items-center gap-1 text-xs font-medium text-red-500 hover:text-red-600">
             <HiX className="h-4 w-4" />
-            Khach le
+            Khách lẻ
           </button>
         )}
       </div>
@@ -116,15 +116,15 @@ export default function CustomerSelector({ value, onChange }: CustomerSelectorPr
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="font-semibold text-slate-900">{selectedCustomer.name}</div>
-              <div className="mt-0.5 text-sm text-slate-600">{selectedCustomer.phone || 'Chua co SDT'}</div>
+              <div className="mt-0.5 text-sm text-slate-600">{selectedCustomer.phone || 'Chưa có SĐT'}</div>
             </div>
             <div className="text-right">
-              <div className="text-xs text-slate-500">Diem</div>
+              <div className="text-xs text-slate-500">Điểm</div>
               <div className="font-bold text-primary-700">{selectedCustomer.points || 0}</div>
             </div>
           </div>
           <div className="mt-2 text-xs text-slate-500">
-            Tong chi tieu: <span className="font-semibold text-slate-700">{formatCurrency(Number(selectedCustomer.total_spent || 0))}</span>
+            Tổng chi tiêu: <span className="font-semibold text-slate-700">{formatCurrency(Number(selectedCustomer.total_spent || 0))}</span>
           </div>
         </div>
       ) : null}
@@ -134,7 +134,7 @@ export default function CustomerSelector({ value, onChange }: CustomerSelectorPr
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Nhap SDT de tim thanh vien..."
+          placeholder="Nhập SĐT để tìm thành viên..."
           className="w-full rounded-lg border border-slate-200 px-9 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
         />
       </div>
@@ -162,12 +162,12 @@ export default function CustomerSelector({ value, onChange }: CustomerSelectorPr
 
       {canQuickCreate && (
         <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-3">
-          <div className="mb-2 text-xs font-medium text-slate-500">Chua co thanh vien voi SDT {phoneSearch}</div>
+          <div className="mb-2 text-xs font-medium text-slate-500">Chưa có thành viên với SĐT {phoneSearch}</div>
           <div className="flex gap-2">
             <input
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              placeholder="Ten khach hang"
+              placeholder="Tên khách hàng"
               className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-primary-500 focus:outline-none"
             />
             <button
@@ -177,7 +177,7 @@ export default function CustomerSelector({ value, onChange }: CustomerSelectorPr
               className="inline-flex items-center gap-1 rounded-lg bg-primary-600 px-3 py-2 text-sm font-semibold text-white hover:bg-primary-700 disabled:opacity-50"
             >
               <HiOutlinePlus className="h-4 w-4" />
-              Tao
+              Tạo
             </button>
           </div>
         </div>

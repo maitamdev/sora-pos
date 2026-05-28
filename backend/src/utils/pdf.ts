@@ -42,21 +42,21 @@ export const generateInvoicePDF = async (invoice: InvoicePdfInput): Promise<Buff
     doc.moveDown();
 
     doc.fontSize(10);
-    doc.text(`Ma hoa don: ${invoice.order.order_number}`);
-    doc.text(`Ngay tao: ${new Date(invoice.order.created_at).toLocaleString('vi-VN')}`);
-    doc.text(`Nhan vien: ${invoice.order.users?.full_name || 'N/A'}`);
-    doc.text(`Khach hang: ${invoice.order.customers?.name || 'Khach le'}`);
+    doc.text(`Mã hóa đơn: ${invoice.order.order_number}`);
+    doc.text(`Ngày tạo: ${new Date(invoice.order.created_at).toLocaleString('vi-VN')}`);
+    doc.text(`Nhân viên: ${invoice.order.users?.full_name || 'N/A'}`);
+    doc.text(`Khách hàng: ${invoice.order.customers?.name || 'Khách lẻ'}`);
     if (invoice.order.customers?.phone) doc.text(`SDT: ${invoice.order.customers.phone}`);
-    doc.text(`Trang thai: ${invoice.order.status}`);
+    doc.text(`Trạng thái: ${invoice.order.status}`);
     doc.moveDown();
 
     const startY = doc.y;
     doc.fontSize(10).font('Helvetica-Bold');
-    doc.text('San pham', 40, startY, { width: 220 });
+    doc.text('Sản phẩm', 40, startY, { width: 220 });
     doc.text('SL', 270, startY, { width: 40, align: 'right' });
-    doc.text('Don gia', 320, startY, { width: 80, align: 'right' });
-    doc.text('Giam', 410, startY, { width: 60, align: 'right' });
-    doc.text('Thanh tien', 480, startY, { width: 75, align: 'right' });
+    doc.text('Đơn giá', 320, startY, { width: 80, align: 'right' });
+    doc.text('Giảm', 410, startY, { width: 60, align: 'right' });
+    doc.text('Thành tiền', 480, startY, { width: 75, align: 'right' });
     doc.moveDown(0.5);
     doc.moveTo(40, doc.y).lineTo(555, doc.y).stroke();
     doc.moveDown(0.5);
@@ -74,17 +74,17 @@ export const generateInvoicePDF = async (invoice: InvoicePdfInput): Promise<Buff
 
     doc.moveTo(40, doc.y).lineTo(555, doc.y).stroke();
     doc.moveDown();
-    doc.text(`Tam tinh: ${money(invoice.order.total_amount)}`, { align: 'right' });
-    doc.text(`Giam gia: ${money(invoice.order.discount_amount)}`, { align: 'right' });
-    doc.font('Helvetica-Bold').fontSize(12).text(`Tong thanh toan: ${money(invoice.order.final_amount)}`, { align: 'right' });
+    doc.text(`Tạm tính: ${money(invoice.order.total_amount)}`, { align: 'right' });
+    doc.text(`Giảm giá: ${money(invoice.order.discount_amount)}`, { align: 'right' });
+    doc.font('Helvetica-Bold').fontSize(12).text(`Tổng thanh toán: ${money(invoice.order.final_amount)}`, { align: 'right' });
     doc.font('Helvetica').fontSize(10);
 
     if (invoice.payment) {
       doc.moveDown();
-      doc.text(`Thanh toan: ${invoice.payment.method}`);
-      doc.text(`Tien nhan: ${money(invoice.payment.received_amount)}`);
-      doc.text(`Tien thua: ${money(invoice.payment.change_amount)}`);
-      doc.text(`Trang thai thanh toan: ${invoice.payment.status}`);
+      doc.text(`Thanh toán: ${invoice.payment.method}`);
+      doc.text(`Tiền nhận: ${money(invoice.payment.received_amount)}`);
+      doc.text(`Tiền thừa: ${money(invoice.payment.change_amount)}`);
+      doc.text(`Trạng thái thanh toán: ${invoice.payment.status}`);
     }
 
     doc.moveDown(2);

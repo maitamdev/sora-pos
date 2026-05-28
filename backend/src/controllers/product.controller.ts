@@ -29,7 +29,7 @@ export class ProductController {
     try {
       const product = await ProductService.getById(req.user!.storeId, req.params.id);
       if (!product) {
-        errorResponse(res, 'San pham khong ton tai', 404);
+        errorResponse(res, 'Sản phẩm không tồn tại', 404);
         return;
       }
       successResponse(res, product);
@@ -41,7 +41,7 @@ export class ProductController {
   static async create(req: Request, res: Response) {
     try {
       const product = await ProductService.create(req.user!.storeId, req.body);
-      successResponse(res, product, 'Tao san pham thanh cong', 201);
+      successResponse(res, product, 'Tạo sản phẩm thành công', 201);
     } catch (error) {
       errorResponse(res, (error as Error).message);
     }
@@ -50,7 +50,7 @@ export class ProductController {
   static async update(req: Request, res: Response) {
     try {
       const product = await ProductService.update(req.user!.storeId, req.params.id, req.body);
-      successResponse(res, product, 'Cap nhat san pham thanh cong');
+      successResponse(res, product, 'Cập nhật sản phẩm thành công');
     } catch (error) {
       errorResponse(res, (error as Error).message);
     }
@@ -59,7 +59,7 @@ export class ProductController {
   static async delete(req: Request, res: Response) {
     try {
       await ProductService.delete(req.user!.storeId, req.params.id);
-      successResponse(res, null, 'An san pham thanh cong');
+      successResponse(res, null, 'Ẩn sản phẩm thành công');
     } catch (error) {
       errorResponse(res, (error as Error).message);
     }

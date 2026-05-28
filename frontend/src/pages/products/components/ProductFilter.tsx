@@ -23,7 +23,7 @@ export default function ProductFilter({ filters, categories, onChange, onSubmit 
             value={filters.search || ''}
             onChange={(e) => updateFilter({ search: e.target.value })}
             onKeyDown={(e) => e.key === 'Enter' && onSubmit()}
-            placeholder="Tim theo ten, SKU, barcode..."
+            placeholder="Tìm theo tên, SKU, barcode..."
             className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2.5 pl-11 pr-4 text-sm transition-all focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/40"
           />
         </div>
@@ -33,7 +33,7 @@ export default function ProductFilter({ filters, categories, onChange, onSubmit 
           onChange={(e) => updateFilter({ category_id: e.target.value || undefined })}
           className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/40"
         >
-          <option value="">Tat ca danh muc</option>
+          <option value="">Tất cả danh mục</option>
           {categories.map((category) => (
             <option key={category.id} value={category.id}>
               {category.name}
@@ -46,9 +46,9 @@ export default function ProductFilter({ filters, categories, onChange, onSubmit 
           onChange={(e) => updateFilter({ status: e.target.value as ProductFilters['status'] })}
           className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/40"
         >
-          <option value="active">Dang ban</option>
-          <option value="inactive">Da an</option>
-          <option value="all">Tat ca trang thai</option>
+          <option value="active">Đang bán</option>
+          <option value="inactive">Đã ẩn</option>
+          <option value="all">Tất cả trạng thái</option>
         </select>
 
         <label className="flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700">
@@ -58,7 +58,7 @@ export default function ProductFilter({ filters, categories, onChange, onSubmit 
             onChange={(e) => updateFilter({ lowStock: e.target.checked || undefined })}
             className="h-4 w-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
           />
-          Ton thap
+          Tồn thấp
         </label>
       </div>
     </div>

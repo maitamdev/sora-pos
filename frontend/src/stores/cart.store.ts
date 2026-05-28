@@ -57,10 +57,10 @@ export const useCartStore = create<CartState>((set, get) => ({
     const nextQuantity = (existing?.quantity || 0) + quantity;
 
     if (product.stock_quantity <= 0) {
-      return { ok: false, message: `${product.name} da het hang` };
+      return { ok: false, message: `${product.name} đã hết hàng` };
     }
     if (nextQuantity > product.stock_quantity) {
-      return { ok: false, message: `${product.name}: khong du ton kho (con ${product.stock_quantity})` };
+      return { ok: false, message: `${product.name}: không đủ tồn kho (còn ${product.stock_quantity})` };
     }
 
     set((current) => {
@@ -104,7 +104,7 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   increaseQuantity: (productId) => {
     const item = get().items.find((cartItem) => cartItem.product_id === productId);
-    if (!item) return { ok: false, message: 'San pham khong co trong gio' };
+    if (!item) return { ok: false, message: 'Sản phẩm không có trong giỏ' };
     return get().updateQuantity(productId, item.quantity + 1);
   },
 
@@ -120,10 +120,10 @@ export const useCartStore = create<CartState>((set, get) => ({
 
   updateQuantity: (productId, quantity) => {
     const item = get().items.find((cartItem) => cartItem.product_id === productId);
-    if (!item) return { ok: false, message: 'San pham khong co trong gio' };
+    if (!item) return { ok: false, message: 'Sản phẩm không có trong giỏ' };
     const nextQuantity = Math.max(1, Math.floor(quantity || 1));
     if (nextQuantity > item.stock_quantity) {
-      return { ok: false, message: `${item.product_name}: khong du ton kho (con ${item.stock_quantity})` };
+      return { ok: false, message: `${item.product_name}: không đủ tồn kho (còn ${item.stock_quantity})` };
     }
 
     set((state) => {

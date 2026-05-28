@@ -48,7 +48,7 @@ export default function ProductsPage() {
       setTotalPages(data?.totalPages || 1);
       setTotal(data?.total || 0);
     } catch (err: any) {
-      const message = err.response?.data?.message || 'Loi khi tai danh sach san pham';
+      const message = err.response?.data?.message || 'Lỗi khi tải danh sách sản phẩm';
       setError(message);
       setProducts([]);
       toast.error(message);
@@ -91,16 +91,16 @@ export default function ProductsPage() {
   };
 
   const handleDelete = async (product: Product) => {
-    if (!window.confirm(`An san pham "${product.name}"? Ban co the loc trang thai "Da an" de xem lai.`)) {
+    if (!window.confirm(`Ẩn sản phẩm "${product.name}"? Bạn có thể lọc trạng thái "Đã ẩn" để xem lại.`)) {
       return;
     }
 
     try {
       await productAPI.delete(product.id);
-      toast.success('Da an san pham');
+      toast.success('Đã ẩn sản phẩm');
       fetchProducts();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Loi khi an san pham');
+      toast.error(err.response?.data?.message || 'Lỗi khi ẩn sản phẩm');
     }
   };
 
@@ -109,15 +109,15 @@ export default function ProductsPage() {
       setIsSubmitting(true);
       if (editingProduct) {
         await productAPI.update(editingProduct.id, data);
-        toast.success('Cap nhat san pham thanh cong');
+        toast.success('Cập nhật sản phẩm thành công');
       } else {
         await productAPI.create(data);
-        toast.success('Them san pham thanh cong');
+        toast.success('Thêm sản phẩm thành công');
       }
       setIsDrawerOpen(false);
       fetchProducts();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Da co loi xay ra');
+      toast.error(err.response?.data?.message || 'Đã có lỗi xảy ra');
       throw err;
     } finally {
       setIsSubmitting(false);
@@ -128,9 +128,9 @@ export default function ProductsPage() {
     <div className="space-y-5 animate-fade-in">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="page-title text-2xl font-bold text-slate-800">San pham</h1>
+          <h1 className="page-title text-2xl font-bold text-slate-800">Sản phẩm</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Quan ly thong tin, gia ban, ton kho va canh bao ton thap.
+            Quản lý thông tin, giá bán, tồn kho và cảnh báo tồn thấp.
           </p>
         </div>
         {canManage && (
@@ -139,7 +139,7 @@ export default function ProductsPage() {
             className="btn-primary flex items-center gap-2 shadow-lg shadow-primary-500/20 transition-transform active:scale-95"
           >
             <HiOutlinePlus className="h-5 w-5" />
-            Them san pham
+            Thêm sản phẩm
           </button>
         )}
       </div>
@@ -169,7 +169,7 @@ export default function ProductsPage() {
       {!loading && totalPages > 1 && (
         <div className="flex items-center justify-between border border-slate-100 bg-white px-5 py-3">
           <span className="text-sm text-slate-500">
-            Trang {filters.page || 1}/{totalPages} - {total} san pham
+            Trang {filters.page || 1}/{totalPages} - {total} sản phẩm
           </span>
           <div className="flex gap-2">
             <button
@@ -177,7 +177,7 @@ export default function ProductsPage() {
               disabled={(filters.page || 1) <= 1}
               className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-50"
             >
-              Truoc
+              Trước
             </button>
             <button
               onClick={() => setFilters((current) => ({ ...current, page: Math.min(totalPages, (current.page || 1) + 1) }))}

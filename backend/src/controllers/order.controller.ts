@@ -49,7 +49,7 @@ export class OrderController {
   static async cancel(req: Request, res: Response) {
     try {
       const result = await OrderService.cancelOrder(req.user!.storeId, req.params.id, req.user!.userId);
-      successResponse(res, result, 'Huy hoa don thanh cong');
+      successResponse(res, result, 'Hủy hóa đơn thành công');
     } catch (error) {
       errorResponse(res, (error as Error).message, 400);
     }
@@ -59,7 +59,7 @@ export class OrderController {
     try {
       const pdf = await OrderService.generatePdf(req.user!.storeId, req.params.id);
       if (!pdf) {
-        errorResponse(res, 'Hoa don khong ton tai', 404);
+        errorResponse(res, 'Hóa đơn không tồn tại', 404);
         return;
       }
 

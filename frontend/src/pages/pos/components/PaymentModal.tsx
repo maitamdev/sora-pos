@@ -15,9 +15,9 @@ interface PaymentModalProps {
 }
 
 const paymentOptions: Array<{ value: PaymentMethod; label: string }> = [
-  { value: 'cash', label: 'Tien mat' },
-  { value: 'bank_transfer', label: 'Chuyen khoan' },
-  { value: 'e_wallet', label: 'Vi dien tu' },
+  { value: 'cash', label: 'Tiền mặt' },
+  { value: 'bank_transfer', label: 'Chuyển khoản' },
+  { value: 'e_wallet', label: 'Ví điện tử' },
   { value: 'qr_mock', label: 'QR mock' },
 ];
 
@@ -43,8 +43,8 @@ export default function PaymentModal({
       <div className="w-full max-w-md rounded-lg bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">Thanh toan</h2>
-            <p className="text-sm text-slate-500">Xac nhan phuong thuc va so tien nhan.</p>
+            <h2 className="text-lg font-semibold text-slate-900">Thanh toán</h2>
+            <p className="text-sm text-slate-500">Xác nhận phương thức và số tiền nhận.</p>
           </div>
           <button onClick={onClose} className="rounded-md p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
             <HiX className="h-5 w-5" />
@@ -53,7 +53,7 @@ export default function PaymentModal({
 
         <div className="space-y-4 p-5">
           <div className="rounded-lg bg-slate-50 p-4">
-            <div className="text-sm text-slate-500">Can thanh toan</div>
+            <div className="text-sm text-slate-500">Cần thanh toán</div>
             <div className="mt-1 text-2xl font-bold text-primary-600">{formatCurrency(total)}</div>
           </div>
 
@@ -76,7 +76,7 @@ export default function PaymentModal({
 
           {paymentMethod === 'cash' ? (
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">Tien khach dua</label>
+              <label className="mb-1 block text-sm font-medium text-slate-700">Tiền khách đưa</label>
               <input
                 type="number"
                 value={receivedAmount || ''}
@@ -85,15 +85,15 @@ export default function PaymentModal({
                 placeholder="0"
               />
               <div className={`mt-2 text-sm ${canConfirm ? 'text-emerald-600' : 'text-red-600'}`}>
-                Tien thua: {canConfirm ? formatCurrency(changeAmount) : 'Chua du tien'}
+                Tiền thừa: {canConfirm ? formatCurrency(changeAmount) : 'Chưa đủ tiền'}
               </div>
             </div>
           ) : (
             <div className="rounded-lg border border-dashed border-slate-200 p-4 text-center">
               <div className="text-sm font-medium text-slate-700">
-                {paymentMethod === 'qr_mock' ? 'Ma QR mock da san sang' : 'Giao dich duoc ghi nhan la da thanh toan'}
+                {paymentMethod === 'qr_mock' ? 'Mã QR mock đã sẵn sàng' : 'Giao dịch được ghi nhận là đã thanh toán'}
               </div>
-              <div className="mt-1 text-xs text-slate-400">Backend se tao payment theo tong tien hoa don.</div>
+              <div className="mt-1 text-xs text-slate-400">Backend sẽ tạo thanh toán theo tổng tiền hóa đơn.</div>
             </div>
           )}
         </div>
@@ -104,7 +104,7 @@ export default function PaymentModal({
             onClick={onClose}
             className="flex-1 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
           >
-            Huy
+            Hủy
           </button>
           <button
             type="button"
@@ -113,7 +113,7 @@ export default function PaymentModal({
             className="btn-primary flex flex-1 items-center justify-center gap-2 py-2.5 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <HiOutlineCheckCircle className="h-5 w-5" />
-            {submitting ? 'Dang xu ly...' : 'Xac nhan'}
+            {submitting ? 'Đang xử lý...' : 'Xác nhận'}
           </button>
         </div>
       </div>

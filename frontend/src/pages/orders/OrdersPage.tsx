@@ -35,7 +35,7 @@ export default function OrdersPage() {
       setTotal(data?.total || 0);
       setTotalPages(data?.totalPages || 1);
     } catch (err: any) {
-      const message = err.response?.data?.message || 'Loi khi tai danh sach hoa don';
+      const message = err.response?.data?.message || 'Lỗi khi tải danh sách hóa đơn';
       setError(message);
       setOrders([]);
       toast.error(message);
@@ -75,7 +75,7 @@ export default function OrdersPage() {
       const res = await orderAPI.getById(order.id);
       setSelectedOrder(res.data.data);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Khong tai duoc chi tiet hoa don');
+      toast.error(err.response?.data?.message || 'Không tải được chi tiết hóa đơn');
       setDetailOpen(false);
     } finally {
       setDetailLoading(false);
@@ -95,7 +95,7 @@ export default function OrdersPage() {
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Khong tai duoc PDF');
+      toast.error(err.response?.data?.message || 'Không tải được PDF');
     }
   };
 
@@ -105,18 +105,18 @@ export default function OrdersPage() {
   };
 
   const cancelOrder = async (order: Order) => {
-    if (!window.confirm(`Huy hoa don ${order.order_number}? Ton kho se duoc hoan lai.`)) return;
+    if (!window.confirm(`Hủy hóa đơn ${order.order_number}? Tồn kho sẽ được hoàn lại.`)) return;
 
     try {
       await orderAPI.cancel(order.id);
-      toast.success('Da huy hoa don va hoan kho');
+      toast.success('Đã hủy hóa đơn và hoàn kho');
       fetchOrders();
       if (selectedOrder?.order.id === order.id) {
         const res = await orderAPI.getById(order.id);
         setSelectedOrder(res.data.data);
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Khong the huy hoa don');
+      toast.error(err.response?.data?.message || 'Không thể hủy hóa đơn');
     }
   };
 
@@ -124,13 +124,13 @@ export default function OrdersPage() {
     <div className="space-y-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="page-title text-2xl font-bold text-slate-900">Quan ly hoa don</h1>
+          <h1 className="page-title text-2xl font-bold text-slate-900">Quản lý hóa đơn</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Tra cuu giao dich, xem chi tiet, tai PDF va huy hoa don theo quyen.
+            Tra cứu giao dịch, xem chi tiết, tải PDF và hủy hóa đơn theo quyền.
           </p>
         </div>
         <div className="rounded-lg border border-slate-100 bg-white px-4 py-2 text-right shadow-sm">
-          <div className="text-xs text-slate-400">Tong ket qua</div>
+          <div className="text-xs text-slate-400">Tổng kết quả</div>
           <div className="text-lg font-bold text-primary-600">{total}</div>
         </div>
       </div>
@@ -159,7 +159,7 @@ export default function OrdersPage() {
               disabled={(filters.page || 1) <= 1}
               className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-50"
             >
-              Truoc
+              Trước
             </button>
             <button
               onClick={() => setFilters((current) => ({ ...current, page: Math.min(totalPages, (current.page || 1) + 1) }))}

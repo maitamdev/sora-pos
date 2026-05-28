@@ -40,7 +40,7 @@ export class CustomerService {
     };
 
     if (!payload.name) {
-      throw new Error('Ten khach hang la bat buoc');
+      throw new Error('Tên khách hàng là bắt buộc');
     }
 
     if (payload.phone) {
@@ -53,7 +53,7 @@ export class CustomerService {
         .maybeSingle();
 
       if (existingCustomer) {
-        throw new Error(`So dien thoai da dang ky cho khach hang ${existingCustomer.name}`);
+        throw new Error(`Số điện thoại đã đăng ký cho khách hàng ${existingCustomer.name}`);
       }
     }
 

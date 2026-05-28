@@ -24,9 +24,9 @@ interface CartPanelProps {
 }
 
 const paymentLabels: Record<string, string> = {
-  cash: 'Tien mat',
-  bank_transfer: 'Chuyen khoan',
-  e_wallet: 'Vi dien tu',
+  cash: 'Tiền mặt',
+  bank_transfer: 'Chuyển khoản',
+  e_wallet: 'Ví điện tử',
   qr_mock: 'QR mock',
 };
 
@@ -53,7 +53,7 @@ export default function CartPanel({
       <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
         <div className="flex items-center gap-2 font-semibold text-slate-900">
           <HiOutlineShoppingCart className="h-5 w-5 text-primary-600" />
-          Gio hang ({items.length})
+          Giỏ hàng ({items.length})
         </div>
         {items.length > 0 && (
           <button type="button" onClick={onClear} className="text-sm font-medium text-red-500 hover:text-red-600">
@@ -66,8 +66,8 @@ export default function CartPanel({
         {items.length === 0 ? (
           <div className="flex h-full min-h-64 flex-col items-center justify-center text-center text-slate-400">
             <HiOutlineShoppingCart className="mb-3 h-10 w-10" />
-            <div className="font-medium">Chua co san pham</div>
-            <div className="mt-1 text-sm">Chon san pham ben trai de them vao gio.</div>
+            <div className="font-medium">Chưa có sản phẩm</div>
+            <div className="mt-1 text-sm">Chọn sản phẩm bên trái để thêm vào giỏ.</div>
           </div>
         ) : (
           <div className="space-y-3">
@@ -88,7 +88,7 @@ export default function CartPanel({
         <CustomerSelector value={customerId} onChange={onCustomerChange} />
 
         <div>
-          <label className="mb-1 block text-sm font-semibold text-slate-700">Phuong thuc thanh toan</label>
+          <label className="mb-1 block text-sm font-semibold text-slate-700">Phương thức thanh toán</label>
           <select
             value={paymentMethod}
             onChange={(e) => onPaymentMethodChange(e.target.value as PaymentMethod)}
@@ -105,17 +105,17 @@ export default function CartPanel({
           value={note}
           onChange={(e) => onNoteChange(e.target.value)}
           rows={2}
-          placeholder="Ghi chu hoa don..."
+          placeholder="Ghi chú hóa đơn..."
           className="w-full resize-none rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
         />
 
         <div className="space-y-2 rounded-lg bg-slate-50 p-3">
           <div className="flex justify-between text-sm">
-            <span className="text-slate-500">Tam tinh</span>
+            <span className="text-slate-500">Tạm tính</span>
             <span className="font-medium text-slate-700">{formatCurrency(subtotal)}</span>
           </div>
           <div className="flex items-center justify-between gap-3 text-sm">
-            <span className="text-slate-500">Giam gia</span>
+            <span className="text-slate-500">Giảm giá</span>
             <input
               type="number"
               value={discountAmount || ''}
@@ -125,7 +125,7 @@ export default function CartPanel({
             />
           </div>
           <div className="flex justify-between border-t border-slate-200 pt-2 text-lg font-bold">
-            <span>Tong cong</span>
+            <span>Tổng cộng</span>
             <span className="text-primary-600">{formatCurrency(total)}</span>
           </div>
         </div>
@@ -136,7 +136,7 @@ export default function CartPanel({
           disabled={items.length === 0}
           className="btn-primary w-full py-3 text-base font-bold shadow-lg shadow-primary-600/20 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Thanh toan
+          Thanh toán
         </button>
       </div>
     </aside>
