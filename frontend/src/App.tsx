@@ -94,15 +94,8 @@ export default function App() {
             }
           />
 
-          {/* Customers - admin, manager */}
-          <Route
-            path="/customers"
-            element={
-              <ProtectedRoute allowedRoles={['admin', 'manager']}>
-                <CustomersPage />
-              </ProtectedRoute>
-            }
-          />
+          {/* Customers - all roles can lookup and register members */}
+          <Route path="/customers" element={<CustomersPage />} />
 
           {/* Orders - all roles */}
           <Route path="/orders" element={<OrdersPage />} />

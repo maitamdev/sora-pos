@@ -9,8 +9,9 @@ export class CustomerService {
       .eq('is_active', true)
       .order('name');
 
-    if (search) {
-      query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%,email.ilike.%${search}%`);
+    if (search?.trim()) {
+      const term = search.trim().replace(/[%_,]/g, '\\$&');
+      query = query.or(`name.ilike.%${term}%,phone.ilike.%${term}%,email.ilike.%${term}%`);
     }
 
     const { data, error } = await query;
@@ -31,9 +32,34 @@ export class CustomerService {
   }
 
   static async create(storeId: string, input: { name: string; email?: string; phone?: string; address?: string }) {
+    const payload = {
+      name: input.name?.trim(),
+      email: input.email?.trim() || null,
+      phone: input.phone?.trim() || null,
+      address: input.address?.trim() || null,
+    };
+
+    if (!payload.name) {
+      throw new Error('Ten khach hang la bat buoc');
+    }
+
+    if (payload.phone) {
+      const { data: existingCustomer } = await supabase
+        .from('customers')
+        .select('id, name')
+        .eq('store_id', storeId)
+        .eq('is_active', true)
+        .eq('phone', payload.phone)
+        .maybeSingle();
+
+      if (existingCustomer) {
+        throw new Error(`So dien thoai da dang ky cho khach hang ${existingCustomer.name}`);
+      }
+    }
+
     const { data, error } = await supabase
       .from('customers')
-      .insert({ ...input, store_id: storeId })
+      .insert({ ...payload, store_id: storeId })
       .select()
       .single();
 

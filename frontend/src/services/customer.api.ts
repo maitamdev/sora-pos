@@ -8,4 +8,10 @@ export const customerAPI = {
 
   getById: (id: string) =>
     api.get<ApiResponse<Customer>>(`/customers/${id}`),
+
+  create: (data: { name: string; phone?: string; email?: string; address?: string }) =>
+    api.post<ApiResponse<Customer>>('/customers', data),
+
+  update: (id: string, data: Partial<{ name: string; phone: string; email: string; address: string }>) =>
+    api.put<ApiResponse<Customer>>(`/customers/${id}`, data),
 };

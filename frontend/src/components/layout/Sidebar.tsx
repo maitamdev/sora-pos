@@ -28,7 +28,7 @@ const menuItems: MenuItem[] = [
   { path: '/products', icon: HiOutlineCube, label: 'Sản phẩm', roles: ['admin', 'manager', 'cashier'] },
   { path: '/categories', icon: HiOutlineTag, label: 'Danh mục', roles: ['admin', 'manager'] },
   { path: '/suppliers', icon: HiOutlineTruck, label: 'Nhà cung cấp', roles: ['admin', 'manager'] },
-  { path: '/customers', icon: HiOutlineUsers, label: 'Khách hàng', roles: ['admin', 'manager'] },
+  { path: '/customers', icon: HiOutlineUsers, label: 'Khách hàng', roles: ['admin', 'manager', 'cashier'] },
   { path: '/orders', icon: HiOutlineClipboardList, label: 'Hóa đơn', roles: ['admin', 'manager', 'cashier'] },
   { path: '/stock', icon: HiOutlineDatabase, label: 'Kho hàng', roles: ['admin', 'manager', 'cashier'] },
   { path: '/reports', icon: HiOutlineChartBar, label: 'Báo cáo', roles: ['admin', 'manager'] },
