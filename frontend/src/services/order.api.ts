@@ -1,14 +1,26 @@
 import api from './api';
 import { ApiResponse } from '../types/user.type';
-import { CreateOrderPayload, Order, OrderResult } from '../types/order.type';
+import { CreateOrderPayload, GetOrdersResponse, Order, OrderFilters, OrderResult } from '../types/order.type';
+
+export const getOrders = (params?: OrderFilters) =>
+  api.get<ApiResponse<GetOrdersResponse>>('/orders', { params });
+
+export const getOrderById = (id: string) =>
+  api.get<ApiResponse<OrderResult>>(`/orders/${id}`);
+
+export const createOrder = (data: CreateOrderPayload) =>
+  api.post<ApiResponse<OrderResult>>('/orders', data);
+
+export const cancelOrder = (id: string) =>
+  api.patch<ApiResponse<Order>>(`/orders/${id}/cancel`);
+
+export const downloadInvoicePdf = (id: string) =>
+  api.get<Blob>(`/orders/${id}/pdf`, { responseType: 'blob' });
 
 export const orderAPI = {
-  create: (data: CreateOrderPayload) =>
-    api.post<ApiResponse<OrderResult>>('/orders', data),
-
-  getAll: (params?: { page?: number; limit?: number }) =>
-    api.get<ApiResponse<{ orders: Order[]; total: number; page: number; limit: number }>>('/orders', { params }),
-
-  getById: (id: string) =>
-    api.get<ApiResponse<OrderResult>>(`/orders/${id}`),
+  create: createOrder,
+  getAll: getOrders,
+  getById: getOrderById,
+  cancel: cancelOrder,
+  downloadPdf: downloadInvoicePdf,
 };

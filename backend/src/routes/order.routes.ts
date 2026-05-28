@@ -10,6 +10,12 @@ const router = Router();
 // GET /api/orders
 router.get('/', authMiddleware, OrderController.getAll);
 
+// GET /api/orders/:id/pdf
+router.get('/:id/pdf', authMiddleware, OrderController.downloadPdf);
+
+// PATCH /api/orders/:id/cancel (admin, manager)
+router.patch('/:id/cancel', authMiddleware, roleMiddleware('admin', 'manager'), OrderController.cancel);
+
 // GET /api/orders/:id
 router.get('/:id', authMiddleware, OrderController.getById);
 

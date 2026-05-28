@@ -72,3 +72,15 @@ export interface OrderResult {
   order_details: OrderDetail[];
   payment: Payment;
 }
+
+export interface OrderFilters {
+  page?: number;
+  limit?: number;
+  search?: string;
+  date_from?: string;
+  date_to?: string;
+  user_id?: string;
+  customer_id?: string;
+  status?: OrderStatus | 'all';
+  payment_status?: PaymentStatus | 'all';
+}

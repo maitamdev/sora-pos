@@ -1,109 +1,184 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 import { orderAPI } from '../../services/order.api';
-import { Order } from '../../types/order.type';
+import { customerAPI } from '../../services/customer.api';
+import { Customer } from '../../types/product.type';
+import { Order, OrderFilters, OrderResult } from '../../types/order.type';
+import { useAuthStore } from '../../stores/auth.store';
+import OrderFilter from './components/OrderFilter';
+import OrderTable from './components/OrderTable';
+import OrderDetailModal from './components/OrderDetailModal';
+
+const limit = 20;
 
 export default function OrdersPage() {
+  const { hasRole } = useAuthStore();
+  const canCancel = hasRole('admin', 'manager');
   const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [filters, setFilters] = useState<OrderFilters>({ page: 1, limit, status: 'all', payment_status: 'all' });
   const [total, setTotal] = useState(0);
-  const limit = 20;
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<OrderResult | null>(null);
 
-  useEffect(() => {
-    fetchOrders();
-  }, [page]);
-
-  const fetchOrders = async () => {
+  const fetchOrders = async (nextFilters = filters) => {
     try {
       setLoading(true);
-      const res = await orderAPI.getAll({ page, limit });
+      setError(null);
+      const res = await orderAPI.getAll(nextFilters);
       const data = res.data.data;
       setOrders(data?.orders || []);
       setTotal(data?.total || 0);
-    } catch (err) {
-      console.error('Fetch orders error:', err);
+      setTotalPages(data?.totalPages || 1);
+    } catch (err: any) {
+      const message = err.response?.data?.message || 'Loi khi tai danh sach hoa don';
+      setError(message);
       setOrders([]);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
   };
 
-  const totalPages = Math.ceil(total / limit);
-
-  const statusLabel = (status: string) => {
-    switch (status) {
-      case 'completed': return <span className="badge-success">Hoàn thành</span>;
-      case 'cancelled': return <span className="badge-danger">Đã hủy</span>;
-      case 'refunded': return <span className="badge-warning">Hoàn trả</span>;
-      default: return <span className="text-sm text-gray-500">{status}</span>;
+  const fetchCustomers = async () => {
+    try {
+      const res = await customerAPI.getAll();
+      setCustomers(res.data.data || []);
+    } catch {
+      setCustomers([]);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
+  useEffect(() => {
+    fetchOrders(filters);
+  }, [filters.page]);
+
+  const applyFilters = () => {
+    const next = { ...filters, page: 1 };
+    setFilters(next);
+    fetchOrders(next);
+  };
+
+  const openDetail = async (order: Order) => {
+    try {
+      setDetailOpen(true);
+      setDetailLoading(true);
+      setSelectedOrder(null);
+      const res = await orderAPI.getById(order.id);
+      setSelectedOrder(res.data.data);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Khong tai duoc chi tiet hoa don');
+      setDetailOpen(false);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const downloadPdf = async (order: Order) => {
+    try {
+      const res = await orderAPI.downloadPdf(order.id);
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${order.order_number}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Khong tai duoc PDF');
+    }
+  };
+
+  const downloadSelectedPdf = () => {
+    if (!selectedOrder) return;
+    downloadPdf(selectedOrder.order);
+  };
+
+  const cancelOrder = async (order: Order) => {
+    if (!window.confirm(`Huy hoa don ${order.order_number}? Ton kho se duoc hoan lai.`)) return;
+
+    try {
+      await orderAPI.cancel(order.id);
+      toast.success('Da huy hoa don va hoan kho');
+      fetchOrders();
+      if (selectedOrder?.order.id === order.id) {
+        const res = await orderAPI.getById(order.id);
+        setSelectedOrder(res.data.data);
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Khong the huy hoa don');
+    }
+  };
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="page-title">Quản lý hóa đơn</h1>
-        <p className="page-subtitle">Lịch sử hóa đơn bán hàng</p>
+    <div className="space-y-5">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="page-title text-2xl font-bold text-slate-900">Quan ly hoa don</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Tra cuu giao dich, xem chi tiet, tai PDF va huy hoa don theo quyen.
+          </p>
+        </div>
+        <div className="rounded-lg border border-slate-100 bg-white px-4 py-2 text-right shadow-sm">
+          <div className="text-xs text-slate-400">Tong ket qua</div>
+          <div className="text-lg font-bold text-primary-600">{total}</div>
+        </div>
       </div>
 
-      <div className="card overflow-hidden">
-        <table className="w-full">
-          <thead>
-            <tr className="bg-gray-50 text-left">
-              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Mã HĐ</th>
-              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Khách hàng</th>
-              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Nhân viên</th>
-              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Tổng tiền</th>
-              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Trạng thái</th>
-              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Ngày tạo</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {orders.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-12 text-center text-gray-400">
-                  Chưa có hóa đơn nào
-                </td>
-              </tr>
-            ) : (
-              orders.map((order) => (
-                <tr key={order.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3 text-sm font-mono font-medium text-primary-600">{order.order_number}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{order.customers?.name || 'Khách lẻ'}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600">{order.users?.full_name || '—'}</td>
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                    {order.final_amount.toLocaleString('vi-VN')} ₫
-                  </td>
-                  <td className="px-4 py-3">{statusLabel(order.status)}</td>
-                  <td className="px-4 py-3 text-sm text-gray-500">
-                    {new Date(order.created_at).toLocaleString('vi-VN')}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+      <OrderFilter filters={filters} customers={customers} onChange={setFilters} onSubmit={applyFilters} />
 
-        {totalPages > 1 && (
-          <div className="flex justify-center gap-2 p-4 border-t">
-            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1} className="px-3 py-1 text-sm rounded border disabled:opacity-50">
-              ← Trước
+      {error && <div className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+
+      <OrderTable
+        orders={orders}
+        loading={loading}
+        canCancel={canCancel}
+        onView={openDetail}
+        onDownloadPdf={downloadPdf}
+        onCancel={cancelOrder}
+      />
+
+      {!loading && totalPages > 1 && (
+        <div className="flex items-center justify-between border border-slate-100 bg-white px-5 py-3">
+          <span className="text-sm text-slate-500">
+            Trang {filters.page || 1}/{totalPages}
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setFilters((current) => ({ ...current, page: Math.max(1, (current.page || 1) - 1) }))}
+              disabled={(filters.page || 1) <= 1}
+              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-50"
+            >
+              Truoc
             </button>
-            <span className="px-3 py-1 text-sm text-gray-600">Trang {page} / {totalPages}</span>
-            <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className="px-3 py-1 text-sm rounded border disabled:opacity-50">
-              Sau →
+            <button
+              onClick={() => setFilters((current) => ({ ...current, page: Math.min(totalPages, (current.page || 1) + 1) }))}
+              disabled={(filters.page || 1) >= totalPages}
+              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-50"
+            >
+              Sau
             </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      <OrderDetailModal
+        isOpen={detailOpen}
+        loading={detailLoading}
+        orderDetail={selectedOrder}
+        onClose={() => setDetailOpen(false)}
+        onDownloadPdf={downloadSelectedPdf}
+      />
     </div>
   );
 }

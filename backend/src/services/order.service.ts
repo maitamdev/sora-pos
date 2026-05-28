@@ -1,6 +1,7 @@
 import { supabase } from '../config/supabase';
-import { CreateOrderInput, OrderResult } from '../types/order.type';
+import { CreateOrderInput, OrderFilters, OrderResult } from '../types/order.type';
 import { generateOrderNumber } from '../utils/calculate';
+import { generateInvoicePDF } from '../utils/pdf';
 import { PaymentService } from './payment.service';
 
 interface ProductRow {
@@ -200,16 +201,52 @@ export class OrderService {
     };
   }
 
-  static async getAll(storeId: string, page: number = 1, limit: number = 20) {
+  static async getAll(storeId: string, filters: OrderFilters = {}) {
+    const page = Math.max(filters.page || 1, 1);
+    const limit = Math.min(Math.max(filters.limit || 20, 1), 100);
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
-    const { data, error, count } = await supabase
+    let query = supabase
       .from('orders')
-      .select('*, customers(name), users(full_name)', { count: 'exact' })
+      .select('*, customers(id, name, phone), users(id, full_name)', { count: 'exact' })
       .eq('store_id', storeId)
-      .order('created_at', { ascending: false })
-      .range(from, to);
+      .order('created_at', { ascending: false });
+
+    if (filters.search?.trim()) {
+      const search = filters.search.trim().replace(/[%_,]/g, '\\$&');
+      query = query.ilike('order_number', `%${search}%`);
+    }
+
+    if (filters.date_from) {
+      query = query.gte('created_at', new Date(filters.date_from).toISOString());
+    }
+
+    if (filters.date_to) {
+      const dateTo = new Date(filters.date_to);
+      dateTo.setHours(23, 59, 59, 999);
+      query = query.lte('created_at', dateTo.toISOString());
+    }
+
+    if (filters.user_id) {
+      query = query.eq('user_id', filters.user_id);
+    }
+
+    if (filters.customer_id) {
+      query = query.eq('customer_id', filters.customer_id);
+    }
+
+    if (filters.status && filters.status !== 'all') {
+      query = query.eq('status', filters.status);
+    }
+
+    if (filters.payment_status && filters.payment_status !== 'all') {
+      query = query.eq('payment_status', filters.payment_status);
+    }
+
+    query = query.range(from, to);
+
+    const { data, error, count } = await query;
 
     if (error) throw new Error(error.message);
 
@@ -218,13 +255,14 @@ export class OrderService {
       total: count || 0,
       page,
       limit,
+      totalPages: Math.max(Math.ceil((count || 0) / limit), 1),
     };
   }
 
   static async getById(storeId: string, id: string) {
     const { data: order, error } = await supabase
       .from('orders')
-      .select('*, customers(name), users(full_name)')
+      .select('*, customers(id, name, phone, email, address, points, total_spent), users(id, full_name, email)')
       .eq('store_id', storeId)
       .eq('id', id)
       .single();
@@ -233,16 +271,107 @@ export class OrderService {
 
     const { data: details } = await supabase
       .from('order_details')
-      .select('*')
+      .select('*, products(id, sku, name, image_url, unit)')
       .eq('order_id', id);
 
     const { data: payment } = await supabase
       .from('payments')
       .select('*')
       .eq('order_id', id)
+      .maybeSingle();
+
+    return { order, order_details: details || [], payment: payment || null };
+  }
+
+  static async cancelOrder(storeId: string, id: string, userId: string) {
+    const current = await this.getById(storeId, id);
+    if (!current) throw new Error('Hoa don khong ton tai');
+    if (current.order.status === 'cancelled') throw new Error('Hoa don da bi huy truoc do');
+
+    // Supabase JS cannot wrap this multi-step cancellation in one transaction.
+    // In production, move this block to a PostgreSQL RPC for atomic stock restore,
+    // order status update, payment status update and customer point rollback.
+    for (const detail of current.order_details) {
+      const { data: product, error: productError } = await supabase
+        .from('products')
+        .select('id, stock_quantity, min_stock_level')
+        .eq('store_id', storeId)
+        .eq('id', detail.product_id)
+        .single();
+
+      if (productError || !product) continue;
+
+      const previousStock = Number(product.stock_quantity || 0);
+      const newStock = previousStock + Number(detail.quantity || 0);
+
+      const { error: stockError } = await supabase
+        .from('products')
+        .update({ stock_quantity: newStock })
+        .eq('store_id', storeId)
+        .eq('id', detail.product_id);
+
+      if (stockError) throw new Error(stockError.message);
+
+      await supabase.from('stock_transactions').insert({
+        product_id: detail.product_id,
+        type: 'return',
+        quantity: Number(detail.quantity || 0),
+        previous_stock: previousStock,
+        new_stock: newStock,
+        reference_id: id,
+        note: `Huy hoa don - HD ${current.order.order_number}`,
+        user_id: userId,
+      });
+
+      await this.syncLowStockAlert(detail.product_id, newStock, Number(product.min_stock_level || 0));
+    }
+
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .update({
+        status: 'cancelled',
+        payment_status: 'unpaid',
+        note: current.order.note
+          ? `${current.order.note}\nCancelled at ${new Date().toISOString()}`
+          : `Cancelled at ${new Date().toISOString()}`,
+      })
+      .eq('store_id', storeId)
+      .eq('id', id)
+      .select()
       .single();
 
-    return { order, order_details: details || [], payment };
+    if (orderError) throw new Error(orderError.message);
+
+    await supabase.from('payments').update({ status: 'refunded' }).eq('order_id', id);
+
+    if (current.order.customer_id) {
+      const rollbackPoints = Math.floor(Number(current.order.final_amount || 0) / 10000);
+      const { data: customer } = await supabase
+        .from('customers')
+        .select('total_spent, points')
+        .eq('store_id', storeId)
+        .eq('id', current.order.customer_id)
+        .single();
+
+      if (customer) {
+        await supabase
+          .from('customers')
+          .update({
+            total_spent: Math.max(Number(customer.total_spent || 0) - Number(current.order.final_amount || 0), 0),
+            points: Math.max(Number(customer.points || 0) - rollbackPoints, 0),
+          })
+          .eq('store_id', storeId)
+          .eq('id', current.order.customer_id);
+      }
+    }
+
+    return order;
+  }
+
+  static async generatePdf(storeId: string, id: string) {
+    const invoice = await this.getById(storeId, id);
+    if (!invoice) return null;
+    return generateInvoicePDF(invoice);
   }
 
   private static async syncLowStockAlert(productId: string, currentStock: number, minStockLevel: number) {

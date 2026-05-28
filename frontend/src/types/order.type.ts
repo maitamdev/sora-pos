@@ -20,8 +20,8 @@ export interface Order {
   payment_status: string;
   note?: string;
   created_at: string;
-  customers?: { name: string };
-  users?: { full_name: string };
+  customers?: { id?: string; name: string; phone?: string; email?: string; points?: number; total_spent?: number };
+  users?: { id?: string; full_name: string; email?: string };
 }
 
 export interface OrderDetail {
@@ -33,6 +33,13 @@ export interface OrderDetail {
   unit_price: number;
   discount: number;
   subtotal: number;
+  products?: {
+    id: string;
+    sku: string;
+    name: string;
+    image_url?: string;
+    unit?: string;
+  };
 }
 
 export interface Payment {
@@ -74,5 +81,25 @@ export interface CreateOrderPayload {
 export interface OrderResult {
   order: Order;
   order_details: OrderDetail[];
-  payment: Payment;
+  payment: Payment | null;
+}
+
+export interface OrderFilters {
+  page?: number;
+  limit?: number;
+  search?: string;
+  date_from?: string;
+  date_to?: string;
+  user_id?: string;
+  customer_id?: string;
+  status?: 'completed' | 'cancelled' | 'refunded' | 'all';
+  payment_status?: 'paid' | 'unpaid' | 'partial' | 'all';
+}
+
+export interface GetOrdersResponse {
+  orders: Order[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }

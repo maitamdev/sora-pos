@@ -1,22 +1,94 @@
-// TODO: Tích hợp PDFKit để xuất hóa đơn PDF
-// import PDFDocument from 'pdfkit';
+import PDFDocument from 'pdfkit';
 
-/**
- * Tạo PDF hóa đơn (skeleton)
- * Sẽ implement khi cần xuất hóa đơn
- */
-export const generateInvoicePDF = async (orderId: string): Promise<Buffer> => {
-  // TODO: Implement PDF generation
-  // 1. Lấy thông tin order từ database
-  // 2. Lấy order_details
-  // 3. Tạo PDF với PDFKit
-  // 4. Thêm header: logo, tên cửa hàng, địa chỉ
-  // 5. Thêm thông tin khách hàng
-  // 6. Thêm bảng sản phẩm
-  // 7. Thêm tổng tiền, giảm giá, thành tiền
-  // 8. Thêm thông tin thanh toán
-  // 9. Trả về Buffer PDF
+interface InvoicePdfInput {
+  order: {
+    order_number: string;
+    created_at: string;
+    total_amount: number;
+    discount_amount: number;
+    final_amount: number;
+    status: string;
+    customers?: { name?: string; phone?: string } | null;
+    users?: { full_name?: string } | null;
+  };
+  order_details: Array<{
+    product_name: string;
+    quantity: number;
+    unit_price: number;
+    discount: number;
+    subtotal: number;
+  }>;
+  payment?: {
+    method: string;
+    received_amount: number;
+    change_amount: number;
+    status: string;
+  } | null;
+}
 
-  console.log(`Generating PDF for order: ${orderId}`);
-  return Buffer.from('PDF placeholder');
+const money = (value: number) => `${Number(value || 0).toLocaleString('vi-VN')} VND`;
+
+export const generateInvoicePDF = async (invoice: InvoicePdfInput): Promise<Buffer> => {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ size: 'A4', margin: 40 });
+    const chunks: Buffer[] = [];
+
+    doc.on('data', (chunk: Buffer | Uint8Array) => chunks.push(Buffer.from(chunk)));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+
+    doc.fontSize(20).text('Aivo POS', { align: 'center' });
+    doc.fontSize(14).text('HOA DON BAN HANG', { align: 'center' });
+    doc.moveDown();
+
+    doc.fontSize(10);
+    doc.text(`Ma hoa don: ${invoice.order.order_number}`);
+    doc.text(`Ngay tao: ${new Date(invoice.order.created_at).toLocaleString('vi-VN')}`);
+    doc.text(`Nhan vien: ${invoice.order.users?.full_name || 'N/A'}`);
+    doc.text(`Khach hang: ${invoice.order.customers?.name || 'Khach le'}`);
+    if (invoice.order.customers?.phone) doc.text(`SDT: ${invoice.order.customers.phone}`);
+    doc.text(`Trang thai: ${invoice.order.status}`);
+    doc.moveDown();
+
+    const startY = doc.y;
+    doc.fontSize(10).font('Helvetica-Bold');
+    doc.text('San pham', 40, startY, { width: 220 });
+    doc.text('SL', 270, startY, { width: 40, align: 'right' });
+    doc.text('Don gia', 320, startY, { width: 80, align: 'right' });
+    doc.text('Giam', 410, startY, { width: 60, align: 'right' });
+    doc.text('Thanh tien', 480, startY, { width: 75, align: 'right' });
+    doc.moveDown(0.5);
+    doc.moveTo(40, doc.y).lineTo(555, doc.y).stroke();
+    doc.moveDown(0.5);
+    doc.font('Helvetica');
+
+    invoice.order_details.forEach((detail) => {
+      const rowY = doc.y;
+      doc.text(detail.product_name, 40, rowY, { width: 220 });
+      doc.text(String(detail.quantity), 270, rowY, { width: 40, align: 'right' });
+      doc.text(money(detail.unit_price), 320, rowY, { width: 80, align: 'right' });
+      doc.text(money(detail.discount), 410, rowY, { width: 60, align: 'right' });
+      doc.text(money(detail.subtotal), 480, rowY, { width: 75, align: 'right' });
+      doc.moveDown(0.8);
+    });
+
+    doc.moveTo(40, doc.y).lineTo(555, doc.y).stroke();
+    doc.moveDown();
+    doc.text(`Tam tinh: ${money(invoice.order.total_amount)}`, { align: 'right' });
+    doc.text(`Giam gia: ${money(invoice.order.discount_amount)}`, { align: 'right' });
+    doc.font('Helvetica-Bold').fontSize(12).text(`Tong thanh toan: ${money(invoice.order.final_amount)}`, { align: 'right' });
+    doc.font('Helvetica').fontSize(10);
+
+    if (invoice.payment) {
+      doc.moveDown();
+      doc.text(`Thanh toan: ${invoice.payment.method}`);
+      doc.text(`Tien nhan: ${money(invoice.payment.received_amount)}`);
+      doc.text(`Tien thua: ${money(invoice.payment.change_amount)}`);
+      doc.text(`Trang thai thanh toan: ${invoice.payment.status}`);
+    }
+
+    doc.moveDown(2);
+    doc.text('Cam on quy khach!', { align: 'center' });
+    doc.end();
+  });
 };
