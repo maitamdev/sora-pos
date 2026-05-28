@@ -71,15 +71,8 @@ export default function App() {
           {/* POS - all roles */}
           <Route path="/pos" element={<POSPage />} />
 
-          {/* Products - admin, manager */}
-          <Route
-            path="/products"
-            element={
-              <ProtectedRoute allowedRoles={['admin', 'manager']}>
-                <ProductsPage />
-              </ProtectedRoute>
-            }
-          />
+          {/* Products - all roles can view; actions are hidden for cashier */}
+          <Route path="/products" element={<ProductsPage />} />
 
           {/* Categories - admin, manager */}
           <Route

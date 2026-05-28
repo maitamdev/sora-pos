@@ -55,6 +55,7 @@ export default function ProductFormDrawer({
       stock_quantity: 0,
       min_stock_level: 10,
       unit: 'cái',
+      status: 'active',
       image_url: '',
     },
   });
@@ -80,6 +81,7 @@ export default function ProductFormDrawer({
           stock_quantity: initialData.stock_quantity,
           min_stock_level: initialData.min_stock_level,
           unit: initialData.unit || 'cái',
+          status: initialData.is_active ? 'active' : 'inactive',
           image_url: initialData.image_url || '',
         });
       } else {
@@ -96,6 +98,7 @@ export default function ProductFormDrawer({
           stock_quantity: 0,
           min_stock_level: 10,
           unit: 'cái',
+          status: 'active',
           image_url: '',
         });
       }
@@ -337,9 +340,18 @@ export default function ProductFormDrawer({
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Đơn vị tính</label>
-                <input {...register('unit')} type="text" className="input-field" placeholder="cái, hộp..." />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Đơn vị tính</label>
+                  <input {...register('unit')} type="text" className="input-field" placeholder="cái, hộp..." />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
+                  <select {...register('status')} className="input-field bg-white">
+                    <option value="active">Đang bán</option>
+                    <option value="inactive">Ẩn sản phẩm</option>
+                  </select>
+                </div>
               </div>
             </div>
 

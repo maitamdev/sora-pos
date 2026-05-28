@@ -1,3 +1,5 @@
+export type ProductStatus = 'active' | 'inactive';
+
 export interface Product {
   id: string;
   sku: string;
@@ -6,17 +8,30 @@ export interface Product {
   description?: string;
   category_id?: string;
   supplier_id?: string;
+  import_price?: number;
+  selling_price?: number;
   cost_price: number;
   sell_price: number;
   stock_quantity: number;
   min_stock_level: number;
   unit: string;
+  status?: ProductStatus;
   image_url?: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
   categories?: { name: string };
   suppliers?: { name: string };
+}
+
+export interface ProductFilters {
+  page?: number;
+  limit?: number;
+  search?: string;
+  category?: string;
+  category_id?: string;
+  status?: ProductStatus | 'all';
+  lowStock?: boolean;
 }
 
 export interface Category {

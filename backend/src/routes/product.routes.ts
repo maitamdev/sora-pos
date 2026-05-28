@@ -19,7 +19,7 @@ router.post('/', authMiddleware, roleMiddleware('admin', 'manager'), validateMid
 // PUT /api/products/:id (admin, manager)
 router.put('/:id', authMiddleware, roleMiddleware('admin', 'manager'), validateMiddleware(updateProductSchema), ProductController.update);
 
-// DELETE /api/products/:id (admin)
-router.delete('/:id', authMiddleware, roleMiddleware('admin'), ProductController.delete);
+// DELETE /api/products/:id (admin, manager)
+router.delete('/:id', authMiddleware, roleMiddleware('admin', 'manager'), ProductController.delete);
 
 export default router;

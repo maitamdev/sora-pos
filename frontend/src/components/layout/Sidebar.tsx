@@ -25,7 +25,7 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { path: '/', icon: HiOutlineHome, label: 'Dashboard', roles: ['admin', 'manager', 'cashier'] },
   { path: '/pos', icon: HiOutlineShoppingCart, label: 'POS Bán hàng', roles: ['admin', 'manager', 'cashier'] },
-  { path: '/products', icon: HiOutlineCube, label: 'Sản phẩm', roles: ['admin', 'manager'] },
+  { path: '/products', icon: HiOutlineCube, label: 'Sản phẩm', roles: ['admin', 'manager', 'cashier'] },
   { path: '/categories', icon: HiOutlineTag, label: 'Danh mục', roles: ['admin', 'manager'] },
   { path: '/suppliers', icon: HiOutlineTruck, label: 'Nhà cung cấp', roles: ['admin', 'manager'] },
   { path: '/customers', icon: HiOutlineUsers, label: 'Khách hàng', roles: ['admin', 'manager'] },
