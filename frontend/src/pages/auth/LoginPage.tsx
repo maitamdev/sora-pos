@@ -10,9 +10,7 @@ import {
   HiOutlineLockClosed,
   HiEye,
   HiEyeOff,
-  HiOutlineExclamationCircle,
-  HiOutlineTrendingUp,
-  HiOutlineSparkles
+  HiOutlineExclamationCircle
 } from 'react-icons/hi';
 
 export default function LoginPage() {
@@ -94,58 +92,15 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Premium CSS Mockup Dashboard Card */}
-          <div className="relative bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl shadow-black/40 scale-100 xl:scale-105 origin-left transition-all duration-300">
-            {/* Window control circles */}
-            <div className="flex gap-1.5 mb-4">
-              <span className="w-3 h-3 rounded-full bg-red-500/80" />
-              <span className="w-3 h-3 rounded-full bg-yellow-500/80" />
-              <span className="w-3 h-3 rounded-full bg-green-500/80" />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              {/* Sales Mini Card */}
-              <div className="bg-white/[0.03] border border-white/5 rounded-xl p-4">
-                <span className="text-xs text-gray-400 block mb-1">Doanh thu hôm nay</span>
-                <span className="text-2xl font-bold text-white tracking-tight">12,850,000 đ</span>
-                <div className="flex items-center gap-1 mt-1 text-emerald-400 text-xs font-semibold">
-                  <HiOutlineTrendingUp className="w-3.5 h-3.5" />
-                  <span>+18.2%</span>
-                </div>
-              </div>
-
-              {/* AI Insight Pill */}
-              <div className="bg-white/[0.03] border border-white/5 rounded-xl p-4 relative overflow-hidden">
-                <div className="absolute right-2 top-2 text-primary-400 animate-pulse">
-                  <HiOutlineSparkles className="w-5 h-5" />
-                </div>
-                <span className="text-xs text-gray-400 block mb-1">AI Trợ Lý gợi ý</span>
-                <p className="text-xs text-gray-300 leading-normal">
-                  "Nhu cầu mua Cafe Sữa tăng cao vào khung giờ 8h-10h sáng. Nên chuẩn bị thêm nguyên liệu."
-                </p>
-              </div>
-            </div>
-
-            {/* Mock Chart */}
-            <div className="h-32 flex items-end justify-between gap-2 pt-2 px-2 border-t border-white/5 relative">
-              <div className="absolute left-4 top-2 text-[10px] text-gray-500">Biểu đồ doanh thu tuần này</div>
-              {/* Chart bars with gradient */}
-              <div className="w-full bg-primary-500/10 hover:bg-primary-500/20 rounded-t-md h-[40%] transition-all duration-300 relative group">
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-slate-950 text-[10px] text-white px-1.5 py-0.5 rounded border border-white/10 whitespace-nowrap">T2: 4.2tr</div>
-              </div>
-              <div className="w-full bg-primary-500/10 hover:bg-primary-500/20 rounded-t-md h-[60%] transition-all duration-300 relative group">
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-slate-950 text-[10px] text-white px-1.5 py-0.5 rounded border border-white/10 whitespace-nowrap">T3: 6.8tr</div>
-              </div>
-              <div className="w-full bg-primary-500/10 hover:bg-primary-500/20 rounded-t-md h-[50%] transition-all duration-300 relative group">
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-slate-950 text-[10px] text-white px-1.5 py-0.5 rounded border border-white/10 whitespace-nowrap">T4: 5.1tr</div>
-              </div>
-              <div className="w-full bg-primary-500/10 hover:bg-primary-500/20 rounded-t-md h-[80%] transition-all duration-300 relative group">
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-slate-950 text-[10px] text-white px-1.5 py-0.5 rounded border border-white/10 whitespace-nowrap">T5: 9.2tr</div>
-              </div>
-              <div className="w-full bg-gradient-to-t from-primary-600 to-indigo-400 rounded-t-md h-[95%] transition-all duration-300 relative group shadow-lg shadow-primary-500/30">
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-slate-950 text-[10px] text-white px-1.5 py-0.5 rounded border border-white/10 whitespace-nowrap">Hôm nay: 12.8tr</div>
-              </div>
-            </div>
+          {/* Premium Generated Illustration */}
+          <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-black/50 bg-slate-950/40 backdrop-blur-md group transition-all duration-300 hover:border-white/20">
+            <img 
+              src="/pos_login_illustration.png" 
+              alt="Sora POS Dashboard Illustration" 
+              className="w-full h-auto object-cover transform transition-transform duration-700 group-hover:scale-[1.02]"
+            />
+            {/* Ambient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none" />
           </div>
         </div>
 
