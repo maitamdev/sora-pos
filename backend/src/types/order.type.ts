@@ -1,6 +1,14 @@
 export type OrderStatus = 'completed' | 'cancelled' | 'refunded';
 export type PaymentStatus = 'paid' | 'unpaid' | 'partial';
-export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'momo' | 'zalopay';
+export type PaymentMethod =
+  | 'cash'
+  | 'bank_transfer'
+  | 'e_wallet'
+  | 'qr_mock'
+  | 'card'
+  | 'transfer'
+  | 'momo'
+  | 'zalopay';
 
 export interface Order {
   id: string;
@@ -54,7 +62,7 @@ export interface CreateOrderInput {
 export interface CreateOrderItemInput {
   product_id: string;
   quantity: number;
-  unit_price: number;
+  unit_price?: number;
   discount?: number;
 }
 

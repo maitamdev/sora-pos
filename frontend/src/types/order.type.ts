@@ -1,4 +1,12 @@
-export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'momo' | 'zalopay';
+export type PaymentMethod =
+  | 'cash'
+  | 'bank_transfer'
+  | 'e_wallet'
+  | 'qr_mock'
+  | 'card'
+  | 'transfer'
+  | 'momo'
+  | 'zalopay';
 
 export interface Order {
   id: string;
@@ -37,7 +45,6 @@ export interface Payment {
   status: string;
 }
 
-// Cart item cho màn hình POS
 export interface CartItem {
   product_id: string;
   product_name: string;
@@ -46,5 +53,26 @@ export interface CartItem {
   quantity: number;
   discount: number;
   subtotal: number;
-  stock_quantity: number; // Để kiểm tra tồn kho
+  stock_quantity: number;
+  image_url?: string;
+  unit?: string;
+}
+
+export interface CreateOrderPayload {
+  customer_id?: string;
+  items: Array<{
+    product_id: string;
+    quantity: number;
+    discount?: number;
+  }>;
+  discount_amount?: number;
+  payment_method: PaymentMethod;
+  received_amount?: number;
+  note?: string;
+}
+
+export interface OrderResult {
+  order: Order;
+  order_details: OrderDetail[];
+  payment: Payment;
 }

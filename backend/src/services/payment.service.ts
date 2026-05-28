@@ -1,6 +1,33 @@
 import { supabase } from '../config/supabase';
+import { PaymentMethod } from '../types/order.type';
 
 export class PaymentService {
+  static async create(input: {
+    order_id: string;
+    method: PaymentMethod;
+    amount: number;
+    received_amount: number;
+    change_amount: number;
+    reference_code?: string;
+  }) {
+    const { data, error } = await supabase
+      .from('payments')
+      .insert({
+        order_id: input.order_id,
+        method: input.method,
+        amount: input.amount,
+        received_amount: input.received_amount,
+        change_amount: input.change_amount,
+        reference_code: input.reference_code || null,
+        status: 'completed',
+      })
+      .select()
+      .single();
+
+    if (error) throw new Error(error.message);
+    return data;
+  }
+
   /**
    * Lấy thanh toán theo order ID
    */

@@ -1,23 +1,48 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
+import { HiOutlineCheckCircle, HiX } from 'react-icons/hi';
 import { useCartStore } from '../../stores/cart.store';
 import { productAPI } from '../../services/product.api';
 import { orderAPI } from '../../services/order.api';
 import { Product } from '../../types/product.type';
+import { OrderResult } from '../../types/order.type';
+import { formatCurrency } from '../../utils/format';
+import ProductSearch from './components/ProductSearch';
+import ProductGrid from './components/ProductGrid';
+import CartPanel from './components/CartPanel';
+import PaymentModal from './components/PaymentModal';
+
+const normalizeSearchTerm = (value?: string) => {
+  const term = value?.trim();
+  if (!term) return undefined;
+
+  try {
+    const parsed = JSON.parse(term) as { sku?: string; name?: string };
+    return parsed.sku || parsed.name || term;
+  } catch {
+    return term;
+  }
+};
 
 export default function POSPage() {
   const {
     items,
-    totalAmount,
-    finalAmount,
+    customerId,
+    paymentMethod,
     discountAmount,
     receivedAmount,
-    paymentMethod,
+    note,
+    subtotal,
+    total,
     addItem,
     removeItem,
-    updateQuantity,
+    increaseQuantity,
+    decreaseQuantity,
+    setCustomer,
+    setPaymentMethod,
     setDiscountAmount,
     setReceivedAmount,
-    setPaymentMethod,
+    setNote,
     clearCart,
   } = useCartStore();
 
@@ -25,310 +50,195 @@ export default function POSPage() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [lastOrder, setLastOrder] = useState<OrderResult | null>(null);
 
   const fetchProducts = async (searchQuery?: string) => {
     try {
       setLoading(true);
-      const res = await productAPI.getAll({ limit: 100, search: searchQuery });
+      const res = await productAPI.getAll({
+        limit: 100,
+        search: normalizeSearchTerm(searchQuery),
+        status: 'active',
+      });
       setProducts(res.data.data?.products || []);
-    } catch (err) {
-      console.error('Fetch products error:', err);
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Loi khi tai san pham');
       setProducts([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSearch = (value: string) => {
-    setSearch(value);
-    // Debounce search
-    const timer = setTimeout(() => fetchProducts(value || undefined), 300);
-    return () => clearTimeout(timer);
-  };
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      fetchProducts(search);
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [search]);
+
+  const cartQuantity = useMemo(
+    () => items.reduce((sum, item) => sum + item.quantity, 0),
+    [items]
+  );
 
   const handleAddToCart = (product: Product) => {
-    if (product.stock_quantity <= 0) {
-      setMessage({ type: 'error', text: `${product.name} đã hết hàng!` });
-      setTimeout(() => setMessage(null), 3000);
+    const result = addItem(product);
+    if (!result.ok) {
+      toast.error(result.message || 'Khong the them san pham');
       return;
     }
-    // Kiểm tra số lượng trong giỏ không vượt quá tồn kho
-    const existingItem = items.find((i) => i.product_id === product.id);
-    if (existingItem && existingItem.quantity >= product.stock_quantity) {
-      setMessage({ type: 'error', text: `${product.name}: không đủ tồn kho (còn ${product.stock_quantity})` });
-      setTimeout(() => setMessage(null), 3000);
-      return;
-    }
-    addItem(product);
+    toast.success(`Da them ${product.name}`);
+  };
+
+  const handleIncrease = (productId: string) => {
+    const result = increaseQuantity(productId);
+    if (!result.ok) toast.error(result.message || 'Khong du ton kho');
   };
 
   const handleCheckout = async () => {
-    if (items.length === 0) return;
-    if (receivedAmount < finalAmount) {
-      setMessage({ type: 'error', text: 'Số tiền nhận chưa đủ!' });
-      setTimeout(() => setMessage(null), 3000);
+    if (items.length === 0) {
+      toast.error('Gio hang dang rong');
+      return;
+    }
+    if (paymentMethod === 'cash' && receivedAmount < total) {
+      toast.error('So tien khach dua chua du');
       return;
     }
 
     try {
       setSubmitting(true);
-      const orderData = {
+      const res = await orderAPI.create({
+        customer_id: customerId || undefined,
         items: items.map((item) => ({
           product_id: item.product_id,
           quantity: item.quantity,
-          unit_price: item.unit_price,
           discount: item.discount,
         })),
         discount_amount: discountAmount,
         payment_method: paymentMethod,
-        received_amount: receivedAmount,
-      };
+        received_amount: paymentMethod === 'cash' ? receivedAmount : total,
+        note: note || undefined,
+      });
 
-      await orderAPI.create(orderData);
-      setMessage({ type: 'success', text: 'Tạo hóa đơn thành công!' });
+      const result = res.data.data;
+      setLastOrder(result);
       clearCart();
-      fetchProducts(); // Refresh tồn kho
-      setTimeout(() => setMessage(null), 3000);
-    } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string } } };
-      setMessage({ type: 'error', text: axiosErr.response?.data?.message || 'Lỗi tạo hóa đơn' });
-      setTimeout(() => setMessage(null), 5000);
+      setIsPaymentOpen(false);
+      await fetchProducts(search);
+      toast.success('Tao hoa don thanh cong');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Loi tao hoa don');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const changeAmount = receivedAmount - finalAmount;
-
   return (
-    <div className="h-[calc(100vh-3rem)]">
-      {/* Message Toast */}
-      {message && (
-        <div
-          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm font-medium transition-all ${
-            message.type === 'success' ? 'bg-emerald-500' : 'bg-red-500'
-          }`}
-        >
-          {message.text}
-        </div>
-      )}
-
-      <div className="grid grid-cols-12 gap-4 h-full">
-        {/* Sản phẩm - bên trái */}
-        <div className="col-span-7 flex flex-col">
+    <div className="h-[calc(100vh-3rem)] min-h-[720px]">
+      <div className="grid h-full grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_440px]">
+        <section className="flex min-h-0 flex-col">
           <div className="mb-4">
-            <h1 className="page-title">POS Bán hàng</h1>
-            <div className="mt-3">
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => handleSearch(e.target.value)}
-                placeholder="🔍 Tìm sản phẩm theo tên, SKU hoặc quét barcode..."
-                className="input-field"
-              />
+            <div className="mb-3 flex items-end justify-between gap-4">
+              <div>
+                <h1 className="page-title text-2xl font-bold text-slate-900">POS ban hang</h1>
+                <p className="mt-1 text-sm text-slate-500">Tim nhanh, them gio va thanh toan tai quay.</p>
+              </div>
+              <div className="rounded-lg border border-slate-100 bg-white px-4 py-2 text-right shadow-sm">
+                <div className="text-xs text-slate-400">Trong gio</div>
+                <div className="text-lg font-bold text-primary-600">{cartQuantity} SP</div>
+              </div>
             </div>
+            <ProductSearch value={search} onChange={setSearch} onSubmit={() => fetchProducts(search)} />
           </div>
 
-          {/* Product Grid */}
-          <div className="flex-1 overflow-y-auto">
-            {loading ? (
-              <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-              </div>
-            ) : products.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-                <span className="text-4xl mb-2">📦</span>
-                <p className="font-medium">Không có sản phẩm nào</p>
-                <p className="text-sm">Hãy thêm sản phẩm trong trang Quản lý sản phẩm</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-3 gap-3">
-                {products.map((product) => (
-                  <button
-                    key={product.id}
-                    onClick={() => handleAddToCart(product)}
-                    disabled={product.stock_quantity <= 0}
-                    className={`bg-white rounded-xl p-4 text-left border transition-all ${
-                      product.stock_quantity <= 0
-                        ? 'border-red-200 opacity-60 cursor-not-allowed'
-                        : 'border-gray-100 hover:border-primary-300 hover:shadow-md'
-                    }`}
-                  >
-                    <div className="w-full h-20 bg-gray-100 rounded-lg mb-2 flex items-center justify-center text-2xl">
-                      {product.image_url ? (
-                        <img src={product.image_url} alt={product.name} className="w-full h-full object-cover rounded-lg" />
-                      ) : (
-                        '📦'
-                      )}
-                    </div>
-                    <p className="font-medium text-sm text-gray-900 truncate">{product.name}</p>
-                    <p className="text-xs text-gray-400">{product.sku}</p>
-                    <div className="flex justify-between items-center mt-1">
-                      <p className="text-primary-600 font-semibold text-sm">
-                        {product.sell_price.toLocaleString('vi-VN')} ₫
-                      </p>
-                      <span
-                        className={`text-xs px-1.5 py-0.5 rounded ${
-                          product.stock_quantity <= 0
-                            ? 'bg-red-100 text-red-600'
-                            : product.stock_quantity <= product.min_stock_level
-                            ? 'bg-amber-100 text-amber-600'
-                            : 'bg-emerald-100 text-emerald-600'
-                        }`}
-                      >
-                        Kho: {product.stock_quantity}
-                      </span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
+          <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+            <ProductGrid products={products} loading={loading} onAdd={handleAddToCart} />
           </div>
-        </div>
+        </section>
 
-        {/* Giỏ hàng - bên phải */}
-        <div className="col-span-5 bg-white rounded-xl border border-gray-100 flex flex-col">
-          <div className="p-4 border-b border-gray-100">
-            <div className="flex justify-between items-center">
-              <h2 className="font-semibold text-gray-900">
-                🛒 Giỏ hàng ({items.length} SP)
-              </h2>
-              {items.length > 0 && (
-                <button onClick={clearCart} className="text-sm text-red-500 hover:text-red-700">
-                  Xóa tất cả
-                </button>
-              )}
+        <CartPanel
+          items={items}
+          customerId={customerId}
+          paymentMethod={paymentMethod}
+          subtotal={subtotal}
+          discountAmount={discountAmount}
+          total={total}
+          note={note}
+          onCustomerChange={setCustomer}
+          onDiscountChange={setDiscountAmount}
+          onNoteChange={setNote}
+          onPaymentMethodChange={setPaymentMethod}
+          onIncrease={handleIncrease}
+          onDecrease={decreaseQuantity}
+          onRemove={removeItem}
+          onClear={clearCart}
+          onOpenPayment={() => setIsPaymentOpen(true)}
+        />
+      </div>
+
+      <PaymentModal
+        isOpen={isPaymentOpen}
+        paymentMethod={paymentMethod}
+        total={total}
+        receivedAmount={receivedAmount}
+        submitting={submitting}
+        onClose={() => setIsPaymentOpen(false)}
+        onPaymentMethodChange={setPaymentMethod}
+        onReceivedAmountChange={setReceivedAmount}
+        onConfirm={handleCheckout}
+      />
+
+      {lastOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
+          <div className="w-full max-w-md rounded-lg bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+              <div className="flex items-center gap-2 font-semibold text-slate-900">
+                <HiOutlineCheckCircle className="h-6 w-6 text-emerald-600" />
+                Hoa don da tao
+              </div>
+              <button onClick={() => setLastOrder(null)} className="rounded-md p-2 text-slate-400 hover:bg-slate-100">
+                <HiX className="h-5 w-5" />
+              </button>
             </div>
-          </div>
-
-          {/* Cart Items */}
-          <div className="flex-1 p-4 overflow-y-auto">
-            {items.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                <span className="text-4xl mb-2">🛒</span>
-                <p>Chưa có sản phẩm nào</p>
-                <p className="text-sm">Nhấn vào sản phẩm để thêm</p>
+            <div className="space-y-3 p-5">
+              <div className="rounded-lg bg-slate-50 p-4">
+                <div className="text-sm text-slate-500">Ma hoa don</div>
+                <div className="font-mono text-lg font-bold text-slate-900">{lastOrder.order.order_number}</div>
               </div>
-            ) : (
-              <div className="space-y-3">
-                {items.map((item) => (
-                  <div key={item.product_id} className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{item.product_name}</p>
-                      <p className="text-xs text-gray-500">
-                        {item.unit_price.toLocaleString('vi-VN')} ₫
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <button
-                          onClick={() => {
-                            if (item.quantity > 1) updateQuantity(item.product_id, item.quantity - 1);
-                            else removeItem(item.product_id);
-                          }}
-                          className="w-6 h-6 rounded bg-gray-200 text-gray-700 flex items-center justify-center text-xs hover:bg-gray-300"
-                        >
-                          −
-                        </button>
-                        <span className="text-sm font-medium w-8 text-center">{item.quantity}</span>
-                        <button
-                          onClick={() => {
-                            if (item.quantity < item.stock_quantity) {
-                              updateQuantity(item.product_id, item.quantity + 1);
-                            }
-                          }}
-                          className="w-6 h-6 rounded bg-gray-200 text-gray-700 flex items-center justify-center text-xs hover:bg-gray-300"
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-primary-600">
-                        {item.subtotal.toLocaleString('vi-VN')} ₫
-                      </p>
-                      <button
-                        onClick={() => removeItem(item.product_id)}
-                        className="text-xs text-red-400 hover:text-red-600 mt-1"
-                      >
-                        Xóa
-                      </button>
-                    </div>
+              <div className="max-h-52 space-y-2 overflow-y-auto">
+                {lastOrder.order_details.map((detail) => (
+                  <div key={detail.id} className="flex justify-between gap-3 text-sm">
+                    <span className="text-slate-600">
+                      {detail.product_name} x{detail.quantity}
+                    </span>
+                    <span className="font-medium text-slate-900">{formatCurrency(detail.subtotal)}</span>
                   </div>
                 ))}
               </div>
-            )}
-          </div>
-
-          {/* Totals & Payment */}
-          <div className="p-4 border-t border-gray-100 space-y-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Tạm tính</span>
-              <span>{totalAmount.toLocaleString('vi-VN')} ₫</span>
-            </div>
-            <div className="flex justify-between text-sm items-center">
-              <span className="text-gray-500">Giảm giá</span>
-              <input
-                type="number"
-                value={discountAmount || ''}
-                onChange={(e) => setDiscountAmount(Number(e.target.value) || 0)}
-                placeholder="0"
-                className="w-28 text-right px-2 py-1 border border-gray-200 rounded text-sm"
-              />
-            </div>
-            <div className="flex justify-between text-lg font-bold pt-2 border-t">
-              <span>Tổng cộng</span>
-              <span className="text-primary-600">{finalAmount.toLocaleString('vi-VN')} ₫</span>
-            </div>
-
-            {/* Payment */}
-            <div className="flex gap-2">
-              {(['cash', 'card', 'transfer', 'momo'] as const).map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setPaymentMethod(m)}
-                  className={`flex-1 py-1.5 text-xs rounded font-medium transition-colors ${
-                    paymentMethod === m ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {m === 'cash' ? '💵 Tiền mặt' : m === 'card' ? '💳 Thẻ' : m === 'transfer' ? '🏦 CK' : '📱 MoMo'}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex justify-between text-sm items-center">
-              <span className="text-gray-500">Tiền nhận</span>
-              <input
-                type="number"
-                value={receivedAmount || ''}
-                onChange={(e) => setReceivedAmount(Number(e.target.value) || 0)}
-                placeholder="0"
-                className="w-28 text-right px-2 py-1 border border-gray-200 rounded text-sm"
-              />
-            </div>
-
-            {receivedAmount > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Tiền thừa</span>
-                <span className={changeAmount >= 0 ? 'text-emerald-600 font-medium' : 'text-red-600 font-medium'}>
-                  {changeAmount >= 0 ? changeAmount.toLocaleString('vi-VN') : 'Chưa đủ'} ₫
-                </span>
+              <div className="border-t border-slate-100 pt-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Giam gia</span>
+                  <span>{formatCurrency(lastOrder.order.discount_amount)}</span>
+                </div>
+                <div className="mt-2 flex justify-between text-lg font-bold">
+                  <span>Tong thanh toan</span>
+                  <span className="text-primary-600">{formatCurrency(lastOrder.order.final_amount)}</span>
+                </div>
               </div>
-            )}
-
-            <button
-              onClick={handleCheckout}
-              disabled={items.length === 0 || submitting}
-              className="btn-primary w-full py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {submitting ? '⏳ Đang xử lý...' : '💳 Thanh toán'}
-            </button>
+            </div>
+            <div className="border-t border-slate-100 bg-slate-50 p-4">
+              <button onClick={() => setLastOrder(null)} className="btn-primary w-full py-2.5">
+                Dong
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
