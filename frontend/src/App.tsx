@@ -14,7 +14,7 @@ import DashboardPage from './pages/dashboard/DashboardPage';
 import POSPage from './pages/pos/POSPage';
 import ProductsPage from './pages/products/ProductsPage';
 import CategoriesPage from './pages/categories/CategoriesPage';
-import SuppliersPage from './pages/suppliers/SuppliersPage';
+import EmployeesPage from './pages/employees/EmployeesPage';
 import CustomersPage from './pages/customers/CustomersPage';
 import OrdersPage from './pages/orders/OrdersPage';
 import StockPage from './pages/stock/StockPage';
@@ -85,12 +85,12 @@ export default function App() {
             }
           />
 
-          {/* Suppliers - admin, manager */}
+          {/* Employees - admin, manager */}
           <Route
-            path="/suppliers"
+            path="/employees"
             element={
               <ProtectedRoute allowedRoles={['admin', 'manager']}>
-                <SuppliersPage />
+                <EmployeesPage />
               </ProtectedRoute>
             }
           />

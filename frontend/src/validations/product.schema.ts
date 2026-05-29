@@ -10,7 +10,6 @@ export const productSchema = z.object({
   name: z.string().trim().min(1, 'Tên sản phẩm không được để trống'),
   description: z.string().optional(),
   category_id: z.string().optional(),
-  supplier_id: z.string().optional(),
   cost_price: z.coerce.number().min(0, 'Giá nhập phải >= 0'),
   sell_price: z.coerce.number().min(0.01, 'Giá bán phải > 0'),
   stock_quantity: z.coerce.number().int().min(0, 'Tồn kho phải >= 0').optional(),

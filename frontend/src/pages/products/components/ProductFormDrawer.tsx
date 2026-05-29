@@ -5,9 +5,8 @@ import { HiX, HiOutlinePhotograph, HiOutlineCube, HiOutlineCurrencyDollar, HiOut
 import toast from 'react-hot-toast';
 import { productSchema, ProductFormData } from '../../../validations/product.schema';
 import { categoryAPI } from '../../../services/category.api';
-import { supplierAPI } from '../../../services/supplier.api';
 import { aiAPI } from '../../../services/ai.api';
-import { Category, Supplier, Product } from '../../../types/product.type';
+import { Category, Product } from '../../../types/product.type';
 import BarcodeScannerModal from './BarcodeScannerModal';
 
 interface ProductFormDrawerProps {
@@ -26,7 +25,6 @@ export default function ProductFormDrawer({
   isLoading = false,
 }: ProductFormDrawerProps) {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   
   // UI States
   const [isScannerOpen, setIsScannerOpen] = useState(false);
@@ -49,7 +47,6 @@ export default function ProductFormDrawer({
       name: '',
       description: '',
       category_id: '',
-      supplier_id: '',
       cost_price: 0,
       sell_price: 0,
       stock_quantity: 0,
@@ -75,7 +72,6 @@ export default function ProductFormDrawer({
           name: initialData.name,
           description: initialData.description || '',
           category_id: initialData.category_id || '',
-          supplier_id: initialData.supplier_id || '',
           cost_price: initialData.cost_price,
           sell_price: initialData.sell_price,
           stock_quantity: initialData.stock_quantity,
@@ -92,7 +88,6 @@ export default function ProductFormDrawer({
           name: '',
           description: '',
           category_id: '',
-          supplier_id: '',
           cost_price: 0,
           sell_price: 0,
           stock_quantity: 0,
@@ -107,12 +102,8 @@ export default function ProductFormDrawer({
 
   const fetchDependencies = async () => {
     try {
-      const [catRes, supRes] = await Promise.all([
-        categoryAPI.getAll().catch(() => ({ data: { data: [] } })),
-        supplierAPI.getAll().catch(() => ({ data: { data: [] } })),
-      ]);
+      const catRes = await categoryAPI.getAll().catch(() => ({ data: { data: [] } }));
       setCategories(catRes.data?.data || []);
-      setSuppliers(supRes.data?.data || []);
     } catch (error) {
       console.error('Error fetching dependencies', error);
     }
@@ -175,7 +166,6 @@ export default function ProductFormDrawer({
     const cleanedData = {
       ...data,
       category_id: data.category_id || undefined,
-      supplier_id: data.supplier_id || undefined,
     };
     await onSubmit(cleanedData as ProductFormData);
     onClose();
@@ -319,22 +309,13 @@ export default function ProductFormDrawer({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Danh mục</label>
                   <select {...register('category_id')} className="input-field bg-white">
                     <option value="">-- Chọn danh mục --</option>
                     {categories.map((c) => (
                       <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nhà cung cấp</label>
-                  <select {...register('supplier_id')} className="input-field bg-white">
-                    <option value="">-- Chọn nhà cung cấp --</option>
-                    {suppliers.map((s) => (
-                      <option key={s.id} value={s.id}>{s.name}</option>
                     ))}
                   </select>
                 </div>

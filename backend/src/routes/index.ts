@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import authRoutes from './auth.routes';
 import productRoutes from './product.routes';
 import categoryRoutes from './category.routes';
-import supplierRoutes from './supplier.routes';
+import employeeRoutes from './employee.routes';
 import customerRoutes from './customer.routes';
 import orderRoutes from './order.routes';
 import paymentRoutes from './payment.routes';
@@ -26,7 +26,7 @@ router.get('/health', (_req: Request, res: Response) => {
 router.use('/auth', authRoutes);
 router.use('/products', productRoutes);
 router.use('/categories', categoryRoutes);
-router.use('/suppliers', supplierRoutes);
+router.use('/employees', employeeRoutes);
 router.use('/customers', customerRoutes);
 router.use('/orders', orderRoutes);
 router.use('/payments', paymentRoutes);
