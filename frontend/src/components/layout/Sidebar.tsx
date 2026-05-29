@@ -12,6 +12,7 @@ import {
   HiOutlineDatabase,
   HiOutlineChartBar,
   HiOutlineLightBulb,
+  HiOutlineCog,
   HiOutlineLogout,
 } from 'react-icons/hi';
 
@@ -33,6 +34,7 @@ const menuItems: MenuItem[] = [
   { path: '/stock', icon: HiOutlineDatabase, label: 'Kho hàng', roles: ['admin', 'manager', 'cashier'] },
   { path: '/reports', icon: HiOutlineChartBar, label: 'Báo cáo', roles: ['admin', 'manager'] },
   { path: '/ai-recommendations', icon: HiOutlineLightBulb, label: 'AI Gợi ý', roles: ['admin', 'manager'] },
+  { path: '/settings', icon: HiOutlineCog, label: 'Cài đặt POS', roles: ['admin', 'manager'] },
 ];
 
 /** Map role → display info */

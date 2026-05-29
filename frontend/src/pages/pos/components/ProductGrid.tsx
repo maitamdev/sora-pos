@@ -6,15 +6,16 @@ interface ProductGridProps {
   products: Product[];
   loading: boolean;
   onAdd: (product: Product) => void;
+  showImages: boolean;
 }
 
-export default function ProductGrid({ products, loading, onAdd }: ProductGridProps) {
+export default function ProductGrid({ products, loading, onAdd, showImages }: ProductGridProps) {
   if (loading) {
     return (
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-3">
         {[1, 2, 3, 4, 5, 6].map((item) => (
-          <div key={item} className="h-44 animate-pulse rounded-lg border border-slate-100 bg-white p-3">
-            <div className="mb-3 h-24 rounded bg-slate-100" />
+          <div key={item} className="animate-pulse rounded-lg border border-slate-100 bg-white p-3">
+            {showImages && <div className="mb-3 h-24 rounded bg-slate-100" />}
             <div className="mb-2 h-4 rounded bg-slate-100" />
             <div className="h-4 w-2/3 rounded bg-slate-100" />
           </div>
@@ -36,7 +37,7 @@ export default function ProductGrid({ products, loading, onAdd }: ProductGridPro
   return (
     <div className="grid grid-cols-2 gap-3 xl:grid-cols-3">
       {products.map((product) => (
-        <ProductCard key={product.id} product={product} onAdd={onAdd} />
+        <ProductCard key={product.id} product={product} onAdd={onAdd} showImage={showImages} />
       ))}
     </div>
   );

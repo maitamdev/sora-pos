@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import toast from 'react-hot-toast';
 import {
   HiOutlineBadgeCheck,
@@ -7,6 +8,7 @@ import {
   HiX,
 } from 'react-icons/hi';
 import { orderAPI } from '../../../services/order.api';
+import { useSettingsStore } from '../../../stores/settings.store';
 import { OrderResult } from '../../../types/order.type';
 import { formatCurrency } from '../../../utils/format';
 
@@ -25,6 +27,18 @@ const paymentLabel: Record<string, string> = {
 export default function InvoiceSuccessModal({ order, onClose }: InvoiceSuccessModalProps) {
   const invoice = order.order;
   const payment = order.payment;
+  const storeName = useSettingsStore((state) => state.storeName);
+  const storeAddress = useSettingsStore((state) => state.storeAddress);
+  const storePhone = useSettingsStore((state) => state.storePhone);
+  const storeTaxCode = useSettingsStore((state) => state.storeTaxCode);
+  const receiptFooter = useSettingsStore((state) => state.receiptFooter);
+  const autoPrintReceipt = useSettingsStore((state) => state.autoPrintReceipt);
+
+  useEffect(() => {
+    if (!autoPrintReceipt) return;
+    const timer = window.setTimeout(() => window.print(), 350);
+    return () => window.clearTimeout(timer);
+  }, [autoPrintReceipt, invoice.id]);
 
   const downloadPdf = async () => {
     try {
@@ -49,6 +63,14 @@ export default function InvoiceSuccessModal({ order, onClose }: InvoiceSuccessMo
         <section className="bg-white">
           <div className="flex items-start justify-between border-b border-slate-100 px-6 py-5">
             <div>
+              <div className="mb-4">
+                <div className="text-xl font-black text-slate-950">{storeName}</div>
+                {storeAddress && <div className="mt-1 text-sm text-slate-500">{storeAddress}</div>}
+                <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm text-slate-500">
+                  {storePhone && <span>SĐT: {storePhone}</span>}
+                  {storeTaxCode && <span>MST: {storeTaxCode}</span>}
+                </div>
+              </div>
               <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700">
                 <HiOutlineBadgeCheck className="h-5 w-5" />
                 Thanh toán thành công
@@ -102,6 +124,11 @@ export default function InvoiceSuccessModal({ order, onClose }: InvoiceSuccessMo
                 ))}
               </div>
             </div>
+            {receiptFooter && (
+              <div className="mt-5 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-center text-sm font-medium text-slate-500">
+                {receiptFooter}
+              </div>
+            )}
           </div>
         </section>
 

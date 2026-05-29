@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useCartStore } from '../../stores/cart.store';
+import { useSettingsStore } from '../../stores/settings.store';
 import { productAPI } from '../../services/product.api';
 import { orderAPI } from '../../services/order.api';
 import { Product } from '../../types/product.type';
@@ -44,6 +45,11 @@ export default function POSPage() {
     setNote,
     clearCart,
   } = useCartStore();
+  const defaultPaymentMethod = useSettingsStore((state) => state.defaultPaymentMethod);
+  const requireCustomer = useSettingsStore((state) => state.requireCustomer);
+  const hideOutOfStock = useSettingsStore((state) => state.hideOutOfStock);
+  const showProductImages = useSettingsStore((state) => state.showProductImages);
+  const maxDiscountPercent = useSettingsStore((state) => state.maxDiscountPercent);
 
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState('');
@@ -60,7 +66,8 @@ export default function POSPage() {
         search: normalizeSearchTerm(searchQuery),
         status: 'active',
       });
-      setProducts(res.data.data?.products || []);
+      const fetchedProducts = res.data.data?.products || [];
+      setProducts(hideOutOfStock ? fetchedProducts.filter((product) => product.stock_quantity > 0) : fetchedProducts);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Lỗi khi tải sản phẩm');
       setProducts([]);
@@ -78,7 +85,13 @@ export default function POSPage() {
       fetchProducts(search);
     }, 250);
     return () => window.clearTimeout(timer);
-  }, [search]);
+  }, [search, hideOutOfStock]);
+
+  useEffect(() => {
+    if (items.length === 0 && paymentMethod !== defaultPaymentMethod) {
+      setPaymentMethod(defaultPaymentMethod);
+    }
+  }, [defaultPaymentMethod, items.length, paymentMethod, setPaymentMethod]);
 
   const cartQuantity = useMemo(
     () => items.reduce((sum, item) => sum + item.quantity, 0),
@@ -99,9 +112,29 @@ export default function POSPage() {
     if (!result.ok) toast.error(result.message || 'Không đủ tồn kho');
   };
 
+  const handleDiscountChange = (amount: number) => {
+    const normalizedAmount = Math.max(amount || 0, 0);
+    const maxDiscountAmount = Math.floor(subtotal * (maxDiscountPercent / 100));
+    if (normalizedAmount > maxDiscountAmount) {
+      setDiscountAmount(maxDiscountAmount);
+      toast.error(`Giảm giá tối đa là ${maxDiscountPercent}% giá trị đơn hàng`);
+      return;
+    }
+    setDiscountAmount(normalizedAmount);
+  };
+
+  const handleClearCart = () => {
+    clearCart();
+    setPaymentMethod(defaultPaymentMethod);
+  };
+
   const handleCheckout = async () => {
     if (items.length === 0) {
       toast.error('Giỏ hàng đang rỗng');
+      return;
+    }
+    if (requireCustomer && !customerId) {
+      toast.error('Cài đặt POS yêu cầu chọn khách hàng trước khi thanh toán');
       return;
     }
     if (paymentMethod === 'cash' && receivedAmount < total) {
@@ -127,7 +160,7 @@ export default function POSPage() {
       const createdOrder = res.data.data;
       const detailRes = await orderAPI.getById(createdOrder.order.id);
       setLastOrder(detailRes.data.data);
-      clearCart();
+      handleClearCart();
       setIsPaymentOpen(false);
       await fetchProducts(search);
       toast.success('Tạo hóa đơn thành công');
@@ -157,7 +190,7 @@ export default function POSPage() {
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto pr-1">
-            <ProductGrid products={products} loading={loading} onAdd={handleAddToCart} />
+            <ProductGrid products={products} loading={loading} onAdd={handleAddToCart} showImages={showProductImages} />
           </div>
         </section>
 
@@ -170,13 +203,13 @@ export default function POSPage() {
           total={total}
           note={note}
           onCustomerChange={setCustomer}
-          onDiscountChange={setDiscountAmount}
+          onDiscountChange={handleDiscountChange}
           onNoteChange={setNote}
           onPaymentMethodChange={setPaymentMethod}
           onIncrease={handleIncrease}
           onDecrease={decreaseQuantity}
           onRemove={removeItem}
-          onClear={clearCart}
+          onClear={handleClearCart}
           onOpenPayment={() => setIsPaymentOpen(true)}
         />
       </div>

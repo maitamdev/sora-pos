@@ -20,6 +20,7 @@ import OrdersPage from './pages/orders/OrdersPage';
 import StockPage from './pages/stock/StockPage';
 import ReportsPage from './pages/reports/ReportsPage';
 import AIRecommendationsPage from './pages/ai/AIRecommendationsPage';
+import SettingsPage from './pages/settings/SettingsPage';
 
 import { Toaster } from 'react-hot-toast';
 
@@ -119,6 +120,16 @@ export default function App() {
             element={
               <ProtectedRoute allowedRoles={['admin', 'manager']}>
                 <AIRecommendationsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Settings - admin, manager */}
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'manager']}>
+                <SettingsPage />
               </ProtectedRoute>
             }
           />
