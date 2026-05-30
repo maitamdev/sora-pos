@@ -13,6 +13,9 @@ router.get('/', authMiddleware, ProductController.getAll);
 // GET /api/products/:id
 router.get('/:id', authMiddleware, ProductController.getById);
 
+// GET /api/products/:id/qr
+router.get('/:id/qr', authMiddleware, ProductController.getQrCode);
+
 // POST /api/products (admin, manager)
 router.post('/', authMiddleware, roleMiddleware('admin', 'manager'), validateMiddleware(createProductSchema), ProductController.create);
 

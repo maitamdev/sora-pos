@@ -38,6 +38,15 @@ export class ProductController {
     }
   }
 
+  static async getQrCode(req: Request, res: Response) {
+    try {
+      const qrCode = await ProductService.getQrCode(req.user!.storeId, req.params.id);
+      successResponse(res, { qr_code: qrCode });
+    } catch (error) {
+      errorResponse(res, (error as Error).message);
+    }
+  }
+
   static async create(req: Request, res: Response) {
     try {
       const product = await ProductService.create(req.user!.storeId, req.body);

@@ -36,4 +36,26 @@ export class AiController {
       errorResponse(res, error.message);
     }
   }
+
+  static async recommendRestock(req: Request, res: Response) {
+    try {
+      const storeId = req.user!.storeId;
+      const userId = req.user!.userId;
+      const targetDays = req.body.target_days ? parseInt(req.body.target_days, 10) : 14;
+      const result = await AiService.recommendRestock(storeId, userId, targetDays);
+      successResponse(res, result, 'Tạo gợi ý nhập hàng AI thành công');
+    } catch (error) {
+      errorResponse(res, (error as Error).message);
+    }
+  }
+
+  static async getHistory(req: Request, res: Response) {
+    try {
+      const storeId = req.user!.storeId;
+      const result = await AiService.getHistory(storeId);
+      successResponse(res, result);
+    } catch (error) {
+      errorResponse(res, (error as Error).message);
+    }
+  }
 }

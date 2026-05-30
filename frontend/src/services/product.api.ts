@@ -32,4 +32,5 @@ export const productAPI = {
   create: createProduct,
   update: updateProduct,
   delete: deleteProduct,
+  getQrCode: (id: string) => api.get<ApiResponse<{ qr_code: string }>>(`/products/${id}/qr`),
 };

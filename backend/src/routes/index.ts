@@ -9,6 +9,8 @@ import paymentRoutes from './payment.routes';
 import stockRoutes from './stock.routes';
 import reportRoutes from './report.routes';
 import aiRoutes from './ai.routes';
+import supplierRoutes from './supplier.routes';
+import settingsRoutes from './settings.routes';
 
 const router = Router();
 
@@ -33,5 +35,7 @@ router.use('/payments', paymentRoutes);
 router.use('/stock', stockRoutes);
 router.use('/reports', reportRoutes);
 router.use('/ai', aiRoutes);
+router.use('/suppliers', supplierRoutes);
+router.use('/settings', settingsRoutes);
 
 export default router;

@@ -16,6 +16,7 @@ import ProductsPage from './pages/products/ProductsPage';
 import CategoriesPage from './pages/categories/CategoriesPage';
 import EmployeesPage from './pages/employees/EmployeesPage';
 import CustomersPage from './pages/customers/CustomersPage';
+import SuppliersPage from './pages/suppliers/SuppliersPage';
 import OrdersPage from './pages/orders/OrdersPage';
 import StockPage from './pages/stock/StockPage';
 import ReportsPage from './pages/reports/ReportsPage';
@@ -91,6 +92,16 @@ export default function App() {
             element={
               <ProtectedRoute allowedRoles={['admin', 'manager']}>
                 <EmployeesPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Suppliers - admin, manager */}
+          <Route
+            path="/suppliers"
+            element={
+              <ProtectedRoute allowedRoles={['admin', 'manager']}>
+                <SuppliersPage />
               </ProtectedRoute>
             }
           />

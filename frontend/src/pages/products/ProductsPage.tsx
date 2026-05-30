@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { HiOutlinePlus, HiOutlineQrcode, HiX } from 'react-icons/hi';
 import { productAPI } from '../../services/product.api';
@@ -27,16 +27,103 @@ export default function ProductsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [qrProduct, setQrProduct] = useState<Product | null>(null);
 
-  const qrUrl = useMemo(() => {
-    if (!qrProduct) return '';
-    const payload = JSON.stringify({
-      id: qrProduct.id,
-      sku: qrProduct.sku,
-      name: qrProduct.name,
-      price: qrProduct.sell_price,
-    });
-    return `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(payload)}`;
+  const [qrBase64, setQrBase64] = useState<string>('');
+  const [loadingQr, setLoadingQr] = useState(false);
+
+  useEffect(() => {
+    if (qrProduct) {
+      setLoadingQr(true);
+      productAPI.getQrCode(qrProduct.id)
+        .then((res) => {
+          setQrBase64(res.data.data?.qr_code || '');
+        })
+        .catch((err) => {
+          console.error(err);
+          toast.error('Lỗi khi tải mã QR từ server');
+          setQrBase64('');
+        })
+        .finally(() => {
+          setLoadingQr(false);
+        });
+    } else {
+      setQrBase64('');
+    }
   }, [qrProduct]);
+
+  const handleDownloadQr = (product: Product, base64: string) => {
+    const link = document.createElement('a');
+    link.href = base64;
+    link.download = `QR_${product.sku}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Đã tải ảnh QR');
+  };
+
+  const handlePrintQr = (product: Product, base64: string) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>In mã QR - ${product.name}</title>
+          <style>
+            body {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              height: 100vh;
+              margin: 0;
+              font-family: system-ui, sans-serif;
+            }
+            .container {
+              text-align: center;
+              border: 1px solid #e2e8f0;
+              padding: 24px;
+              border-radius: 12px;
+              box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            }
+            img {
+              width: 220px;
+              height: 220px;
+            }
+            h2 {
+              margin: 15px 0 5px 0;
+              font-size: 18px;
+              color: #1e293b;
+            }
+            p {
+              margin: 5px 0;
+              color: #64748b;
+              font-size: 14px;
+            }
+            .price {
+              color: #059669;
+              font-weight: bold;
+              font-size: 16px;
+              margin-top: 8px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <img src="${base64}" />
+            <h2>${product.name}</h2>
+            <p>SKU: ${product.sku}</p>
+            <p class="price">${Number(product.sell_price || 0).toLocaleString('vi-VN')} VND</p>
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+              setTimeout(function() { window.close(); }, 500);
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
 
   const fetchProducts = async (nextFilters = filters) => {
     try {
@@ -199,23 +286,51 @@ export default function ProductsPage() {
       />
 
       {qrProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
-          <div className="w-full max-w-sm bg-white p-5 shadow-2xl">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2 font-semibold text-slate-800">
-                <HiOutlineQrcode className="h-5 w-5" />
-                QR san pham
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 animate-fade-in">
+          <div className="w-full max-w-sm bg-white p-5 shadow-2xl rounded-lg animate-scale-up">
+            <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2 font-bold text-slate-800">
+                <HiOutlineQrcode className="h-5 w-5 text-primary-600" />
+                Mã QR sản phẩm
               </div>
-              <button onClick={() => setQrProduct(null)} className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+              <button onClick={() => setQrProduct(null)} className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
                 <HiX className="h-5 w-5" />
               </button>
             </div>
-            <div className="flex flex-col items-center gap-3">
-              <img src={qrUrl} alt={`QR ${qrProduct.sku}`} className="h-56 w-56 border border-slate-100" />
-              <div className="text-center">
-                <div className="font-medium text-slate-900">{qrProduct.name}</div>
-                <div className="text-sm text-slate-500">{qrProduct.sku}</div>
-              </div>
+            <div className="flex flex-col items-center gap-4">
+              {loadingQr ? (
+                <div className="flex h-56 w-56 items-center justify-center border border-slate-100 bg-slate-50/50 rounded-lg">
+                  <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary-600"></div>
+                </div>
+              ) : qrBase64 ? (
+                <>
+                  <img src={qrBase64} alt={`QR ${qrProduct.sku}`} className="h-56 w-56 border border-slate-100 shadow-sm rounded-lg" />
+                  <div className="text-center w-full">
+                    <div className="font-bold text-slate-800 text-base line-clamp-1">{qrProduct.name}</div>
+                    <div className="text-xs text-slate-500 mt-1">SKU: <span className="font-mono text-slate-700 font-semibold">{qrProduct.sku}</span></div>
+                    <div className="text-sm text-emerald-600 font-bold mt-1.5">{Number(qrProduct.sell_price || 0).toLocaleString('vi-VN')} VND</div>
+                  </div>
+                  
+                  <div className="flex gap-2 w-full mt-2">
+                    <button
+                      onClick={() => handleDownloadQr(qrProduct, qrBase64)}
+                      className="flex-1 rounded-lg border border-slate-200 bg-white py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                    >
+                      📥 Tải xuống
+                    </button>
+                    <button
+                      onClick={() => handlePrintQr(qrProduct, qrBase64)}
+                      className="flex-1 btn-primary py-2 text-sm font-semibold transition-colors"
+                    >
+                      🖨️ In mã QR
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="flex h-56 w-56 items-center justify-center border border-dashed border-red-200 text-sm text-red-500 bg-rose-50/50 rounded-lg">
+                  Lỗi tạo mã QR
+                </div>
+              )}
             </div>
           </div>
         </div>

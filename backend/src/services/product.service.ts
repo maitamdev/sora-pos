@@ -93,6 +93,16 @@ export class ProductService {
     return normalizeProduct(data as Product);
   }
 
+  static async getQrCode(storeId: string, id: string): Promise<string> {
+    const product = await this.getById(storeId, id);
+    if (!product) throw new Error('Sản phẩm không tồn tại hoặc không thuộc cửa hàng này');
+    return generateProductQR({
+      sku: product.sku,
+      name: product.name,
+      sell_price: product.sell_price,
+    });
+  }
+
   static async create(storeId: string, input: CreateProductInput): Promise<Product> {
     const payload = preparePayload(input);
 
